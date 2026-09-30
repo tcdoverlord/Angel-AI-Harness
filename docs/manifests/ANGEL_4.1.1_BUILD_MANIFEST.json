@@ -1,0 +1,40 @@
+{
+  "product": "Angel Platform",
+  "version": "4.1.1",
+  "release": "Workspace Cohesion Release Candidate",
+  "base": "Angel Platform 4.1 Canonical Build",
+  "architecture": "Angel 4.1 Knowledge Engineering",
+  "focus": [
+    "project context isolation",
+    "exact knowledge pack selection",
+    "stale selection recovery",
+    "real knowledge deletion",
+    "workspace cohesion validation"
+  ],
+  "preserved": [
+    "conversation persistence",
+    "date/time routing",
+    "weather routing",
+    "knowledge import/search/index",
+    "memory",
+    "pinned and recent conversations",
+    "local model routing",
+    "canonical OpenAPI contract",
+    "Angel 4.1 engineering lifecycle and historical records"
+  ],
+  "tests": {
+    "pytest": "42 passed",
+    "python_compile": "passed",
+    "javascript_syntax": "passed",
+    "http_smoke": "passed"
+  },
+  "notes": "Incremental runtime integration. Does not claim full behavioral implementation of every canonical 4.1 OpenAPI operation.",
+  "status": "Release Candidate \u2014 automated validation passed; manual approvals pending",
+  "deferred": [
+    "Contextual Continuity",
+    "Event Bus Runtime",
+    "Payload Validation",
+    "Contextual Pill Enhancements",
+    "Additional UX Refinements"
+  ]
+}

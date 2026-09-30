@@ -1,0 +1,3378 @@
+openapi: 3.1.0
+jsonSchemaDialect: https://json-schema.org/draft/2020-12/schema
+info:
+  title: Angel 4.1 Canonical API
+  version: 4.1.0
+  description: 'Canonical Angel 4.1 OpenAPI contract.
+
+
+    Domains:
+
+    1. Project Workspace
+
+    2. Knowledge
+
+    3. Files
+
+    4. Retrieval Scope
+
+    5. RAG Runtime
+
+    6. RAG Inspector
+
+    7. Evaluation
+
+    8. Evidence
+
+    9. Measurements
+
+    10. Snapshots
+
+    11. Recommendations
+
+    12. Knowledge Changes
+
+    13. Index Builds
+
+    14. Operations
+
+    15. Problem Details
+
+
+    Canonical lifecycle:
+
+    Project → Retrieval Policy → Resolved Retrieval Scope → RAG Run → Evaluation
+
+    → Evidence → Measurement → Snapshot → Recommendation → User Decision
+
+    → Knowledge Change → Index Build → New RAG Run.
+
+
+    RAG is Angel''s evidence-producing runtime. Knowledge Engineering observes,
+
+    evaluates, explains, measures, snapshots, recommends, and records changes
+
+    around that runtime.
+
+
+    Rule 4.1.9 — Error Transparency:
+
+    Failures use structured Problem Details, are observable, and do not mutate
+
+    engineering records.
+
+
+    Rule 4.1.10 — Endpoint Error Examples:
+
+    Every declared non-2xx response defines a Problem Details schema, response
+
+    definition, and concrete endpoint-level example.
+
+
+    Integrity rules:
+
+    - RAG Runs preserve the exact execution configuration and resolved Project context.
+
+    - Selected and rejected retrieval candidates remain inspectable.
+
+    - Candidates and context items preserve immutable lineage.
+
+    - Unknown measurements remain unknown and are never represented as zero.
+
+    - Recommendations are evidence-backed and advisory.
+
+    - User knowledge is never silently modified.
+
+    - Generated answers never automatically become trusted knowledge.
+
+    - Health summaries never replace supporting evidence.
+
+    - Historical comparisons identify evaluation and index versions.
+
+    '
+servers:
+- url: /api/v1
+  description: Local Angel API
+tags:
+- name: Core Runtime
+  description: Runtime RAG execution and answer generation.
+- name: Projects
+  description: Project workspaces and project context.
+- name: Project Conversations
+- name: Project Knowledge
+- name: Project Files
+- name: Project Settings
+- name: Project Retrieval
+- name: RAG Runs
+- name: Evaluations
+- name: Evidence
+- name: Measurements
+- name: Snapshots
+- name: Recommendations
+- name: Knowledge Changes
+- name: Indexes
+- name: Operations
+paths:
+  /rag-runs:
+    post:
+      tags:
+      - RAG Runs
+      operationId: createRagRun
+      parameters:
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RagRunCreateRequest'
+      responses:
+        '202':
+          description: RAG run accepted
+          headers:
+            Location:
+              schema:
+                type: string
+                format: uri-reference
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RagRunAccepted'
+        '400':
+          description: Request could not be completed
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+              example:
+                type: https://angel.local/problems/invalid_request
+                title: Bad Request
+                status: 400
+                code: INVALID_REQUEST
+                detail: The request could not be processed.
+                operation_id: createRagRun
+                path: /rag-runs
+        '409':
+          description: Request could not be completed
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+              example:
+                type: https://angel.local/problems/resource_conflict
+                title: Conflict
+                status: 409
+                code: RESOURCE_CONFLICT
+                detail: The resource changed or is otherwise incompatible with this operation.
+                operation_id: createRagRun
+                path: /rag-runs
+        '422':
+          description: Request could not be completed
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+              example:
+                type: https://angel.local/problems/request_not_processable
+                title: Unprocessable Entity
+                status: 422
+                code: REQUEST_NOT_PROCESSABLE
+                detail: The supplied values cannot be processed in the current state.
+                operation_id: createRagRun
+                path: /rag-runs
+  /rag-runs/{rag_run_id}:
+    get:
+      tags:
+      - RAG Runs
+      operationId: getRagRun
+      parameters:
+      - $ref: '#/components/parameters/RagRunId'
+      responses:
+        '200':
+          description: Immutable RAG run
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RagRun'
+        '404':
+          description: Request could not be completed
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+              example:
+                type: https://angel.local/problems/resource_not_found
+                title: Not Found
+                status: 404
+                code: RESOURCE_NOT_FOUND
+                detail: The requested resource does not exist or is not accessible.
+                operation_id: getRagRun
+                path: /rag-runs/{rag_run_id}
+  /rag-runs/{rag_run_id}/candidates:
+    get:
+      tags:
+      - RAG Runs
+      - Evidence
+      operationId: listRagCandidates
+      parameters:
+      - $ref: '#/components/parameters/RagRunId'
+      - name: selected
+        in: query
+        schema:
+          type: boolean
+      - name: rejection_reason
+        in: query
+        schema:
+          $ref: '#/components/schemas/CandidateRejectionReason'
+      - name: pack_id
+        in: query
+        schema:
+          type: string
+      - $ref: '#/components/parameters/Limit'
+      - $ref: '#/components/parameters/Cursor'
+      responses:
+        '200':
+          description: Selected and rejected retrieval candidates
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RetrievalCandidatePage'
+  /rag-runs/{rag_run_id}/context:
+    get:
+      tags:
+      - RAG Runs
+      - Evidence
+      operationId: getRagContext
+      parameters:
+      - $ref: '#/components/parameters/RagRunId'
+      responses:
+        '200':
+          description: Final model context and budget diagnostics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContextBuild'
+  /rag-runs/{rag_run_id}/answer:
+    get:
+      tags:
+      - RAG Runs
+      operationId: getRagAnswer
+      parameters:
+      - $ref: '#/components/parameters/RagRunId'
+      responses:
+        '200':
+          description: Generated answer
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GeneratedAnswer'
+  /evaluation-runs:
+    post:
+      tags:
+      - Evaluations
+      operationId: createEvaluationRun
+      parameters:
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EvaluationRunCreateRequest'
+      responses:
+        '202':
+          $ref: '#/components/responses/OperationAccepted'
+  /evaluations:
+    post:
+      tags:
+      - Evaluations
+      operationId: evaluateExistingRagRun
+      parameters:
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExistingRagEvaluationRequest'
+      responses:
+        '202':
+          $ref: '#/components/responses/OperationAccepted'
+  /evaluations/{evaluation_id}:
+    get:
+      tags:
+      - Evaluations
+      operationId: getEvaluation
+      parameters:
+      - $ref: '#/components/parameters/EvaluationId'
+      responses:
+        '200':
+          description: Evaluation assessment
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Evaluation'
+  /evaluations/{evaluation_id}/evidence:
+    get:
+      tags:
+      - Evaluations
+      - Evidence
+      operationId: getEvaluationEvidence
+      parameters:
+      - $ref: '#/components/parameters/EvaluationId'
+      responses:
+        '200':
+          description: Document-to-claim evidence graph
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvidenceGraph'
+  /measurement-runs:
+    post:
+      tags:
+      - Measurements
+      operationId: createMeasurementRun
+      parameters:
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MeasurementRunRequest'
+      responses:
+        '202':
+          $ref: '#/components/responses/OperationAccepted'
+  /measurements/{measurement_id}:
+    get:
+      tags:
+      - Measurements
+      operationId: getMeasurement
+      parameters:
+      - $ref: '#/components/parameters/MeasurementId'
+      responses:
+        '200':
+          description: Evidence-derived measurement
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Measurement'
+  /measurements/{measurement_id}/evidence:
+    get:
+      tags:
+      - Measurements
+      - Evidence
+      operationId: getMeasurementEvidence
+      parameters:
+      - $ref: '#/components/parameters/MeasurementId'
+      responses:
+        '200':
+          description: Measurement evidence graph
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvidenceGraph'
+  /health-snapshots:
+    post:
+      tags:
+      - Snapshots
+      operationId: createHealthSnapshot
+      parameters:
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HealthSnapshotCreateRequest'
+      responses:
+        '201':
+          description: Health snapshot created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthSnapshot'
+  /health-snapshots/{snapshot_id}:
+    get:
+      tags:
+      - Snapshots
+      operationId: getHealthSnapshot
+      parameters:
+      - $ref: '#/components/parameters/SnapshotId'
+      responses:
+        '200':
+          description: Immutable health snapshot
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthSnapshot'
+  /health-snapshots/{snapshot_id}/comparison:
+    get:
+      tags:
+      - Snapshots
+      operationId: compareHealthSnapshots
+      parameters:
+      - $ref: '#/components/parameters/SnapshotId'
+      - name: against
+        in: query
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Snapshot comparison
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SnapshotComparison'
+  /recommendation-runs:
+    post:
+      tags:
+      - Recommendations
+      operationId: createRecommendationRun
+      parameters:
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecommendationRunRequest'
+      responses:
+        '202':
+          $ref: '#/components/responses/OperationAccepted'
+  /recommendations/{recommendation_id}:
+    get:
+      tags:
+      - Recommendations
+      operationId: getRecommendation
+      parameters:
+      - $ref: '#/components/parameters/RecommendationId'
+      responses:
+        '200':
+          description: Evidence-backed recommendation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Recommendation'
+  /recommendations/{recommendation_id}/evidence:
+    get:
+      tags:
+      - Recommendations
+      - Evidence
+      operationId: getRecommendationEvidence
+      parameters:
+      - $ref: '#/components/parameters/RecommendationId'
+      responses:
+        '200':
+          description: Recommendation evidence graph
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvidenceGraph'
+  /recommendations/{recommendation_id}/decisions:
+    post:
+      tags:
+      - Recommendations
+      operationId: recordRecommendationDecision
+      parameters:
+      - $ref: '#/components/parameters/RecommendationId'
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecommendationDecisionRequest'
+      responses:
+        '200':
+          description: Recommendation updated without modifying knowledge
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Recommendation'
+  /recommendations/{recommendation_id}/retest:
+    post:
+      tags:
+      - Recommendations
+      - Evaluations
+      operationId: retestRecommendation
+      parameters:
+      - $ref: '#/components/parameters/RecommendationId'
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RetestRequest'
+      responses:
+        '202':
+          $ref: '#/components/responses/OperationAccepted'
+  /knowledge-change-sets:
+    post:
+      tags:
+      - Knowledge Changes
+      operationId: createKnowledgeChangeSet
+      parameters:
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/KnowledgeChangeSetCreateRequest'
+      responses:
+        '201':
+          description: Draft knowledge change set created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KnowledgeChangeSet'
+  /knowledge-change-sets/{change_set_id}:
+    get:
+      tags:
+      - Knowledge Changes
+      operationId: getKnowledgeChangeSet
+      parameters:
+      - $ref: '#/components/parameters/ChangeSetId'
+      responses:
+        '200':
+          description: Knowledge change set
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KnowledgeChangeSet'
+  /knowledge-change-sets/{change_set_id}/items:
+    post:
+      tags:
+      - Knowledge Changes
+      operationId: addKnowledgeChangeItem
+      parameters:
+      - $ref: '#/components/parameters/ChangeSetId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/KnowledgeChangeItem'
+      responses:
+        '200':
+          description: Updated knowledge change set
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KnowledgeChangeSet'
+  /knowledge-change-sets/{change_set_id}/complete:
+    post:
+      tags:
+      - Knowledge Changes
+      operationId: completeKnowledgeChangeSet
+      parameters:
+      - $ref: '#/components/parameters/ChangeSetId'
+      responses:
+        '200':
+          description: Completed change set
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KnowledgeChangeSet'
+  /index-builds:
+    post:
+      tags:
+      - Indexes
+      operationId: createIndexBuild
+      parameters:
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IndexBuildRequest'
+      responses:
+        '202':
+          $ref: '#/components/responses/OperationAccepted'
+  /operations/{operation_id}:
+    get:
+      tags:
+      - Operations
+      operationId: getOperation
+      parameters:
+      - $ref: '#/components/parameters/OperationId'
+      responses:
+        '200':
+          description: Asynchronous operation status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Operation'
+  /operations/{operation_id}/events:
+    get:
+      tags:
+      - Operations
+      operationId: streamOperationEvents
+      parameters:
+      - $ref: '#/components/parameters/OperationId'
+      responses:
+        '200':
+          description: Server-sent operation events
+          content:
+            text/event-stream:
+              schema:
+                type: string
+  /projects:
+    get:
+      tags:
+      - Projects
+      operationId: listProjects
+      parameters:
+      - $ref: '#/components/parameters/ProjectStatusFilter'
+      - $ref: '#/components/parameters/Limit'
+      - $ref: '#/components/parameters/Cursor'
+      responses:
+        '200':
+          description: Projects accessible to the current user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectPage'
+    post:
+      tags:
+      - Projects
+      operationId: createProject
+      parameters:
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectCreateRequest'
+      responses:
+        '201':
+          description: Project created
+          headers:
+            Location:
+              schema:
+                type: string
+                format: uri-reference
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        '400':
+          description: Request could not be completed
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+              example:
+                type: https://angel.local/problems/invalid_request
+                title: Bad Request
+                status: 400
+                code: INVALID_REQUEST
+                detail: The request could not be processed.
+                operation_id: createProject
+                path: /projects
+        '409':
+          description: Request could not be completed
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+              example:
+                type: https://angel.local/problems/resource_conflict
+                title: Conflict
+                status: 409
+                code: RESOURCE_CONFLICT
+                detail: The resource changed or is otherwise incompatible with this operation.
+                operation_id: createProject
+                path: /projects
+  /projects/{project_id}:
+    get:
+      tags:
+      - Projects
+      operationId: getProject
+      parameters:
+      - $ref: '#/components/parameters/ProjectId'
+      responses:
+        '200':
+          description: Project workspace
+          headers:
+            ETag:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        '404':
+          description: Request could not be completed
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+              example:
+                type: https://angel.local/problems/resource_not_found
+                title: Not Found
+                status: 404
+                code: RESOURCE_NOT_FOUND
+                detail: The requested resource does not exist or is not accessible.
+                operation_id: getProject
+                path: /projects/{project_id}
+    patch:
+      tags:
+      - Projects
+      operationId: updateProject
+      parameters:
+      - $ref: '#/components/parameters/ProjectId'
+      - $ref: '#/components/parameters/IfMatch'
+      requestBody:
+        required: true
+        content:
+          application/merge-patch+json:
+            schema:
+              $ref: '#/components/schemas/ProjectUpdateRequest'
+      responses:
+        '200':
+          description: Updated project
+          headers:
+            ETag:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        '404':
+          description: Request could not be completed
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+              example:
+                type: https://angel.local/problems/resource_not_found
+                title: Not Found
+                status: 404
+                code: RESOURCE_NOT_FOUND
+                detail: The requested resource does not exist or is not accessible.
+                operation_id: updateProject
+                path: /projects/{project_id}
+        '412':
+          description: Request could not be completed
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+              example:
+                type: https://angel.local/problems/precondition_failed
+                title: Precondition Failed
+                status: 412
+                code: PRECONDITION_FAILED
+                detail: The supplied resource version does not match the current version.
+                operation_id: updateProject
+                path: /projects/{project_id}
+  /projects/{project_id}/workspace:
+    get:
+      tags:
+      - Projects
+      operationId: getProjectWorkspace
+      parameters:
+      - $ref: '#/components/parameters/ProjectId'
+      responses:
+        '200':
+          description: Project workspace summary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectWorkspace'
+  /projects/{project_id}/archive:
+    post:
+      tags:
+      - Projects
+      operationId: archiveProject
+      parameters:
+      - $ref: '#/components/parameters/ProjectId'
+      - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: Project archived
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+  /projects/{project_id}/restore:
+    post:
+      tags:
+      - Projects
+      operationId: restoreProject
+      parameters:
+      - $ref: '#/components/parameters/ProjectId'
+      - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: Project restored
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+  /projects/{project_id}/conversations:
+    get:
+      tags:
+      - Project Conversations
+      operationId: listProjectConversations
+      parameters:
+      - $ref: '#/components/parameters/ProjectId'
+      - name: pinned
+        in: query
+        schema:
+          type: boolean
+      - $ref: '#/components/parameters/Limit'
+      - $ref: '#/components/parameters/Cursor'
+      responses:
+        '200':
+          description: Conversations assigned to the project
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectConversationPage'
+    post:
+      tags:
+      - Project Conversations
+      operationId: createProjectConversation
+      parameters:
+      - $ref: '#/components/parameters/ProjectId'
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectConversationCreateRequest'
+      responses:
+        '201':
+          description: Project conversation created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectConversation'
+  /projects/{project_id}/conversations/{conversation_id}:
+    put:
+      tags:
+      - Project Conversations
+      operationId: assignConversationToProject
+      parameters:
+      - $ref: '#/components/parameters/ProjectId'
+      - $ref: '#/components/parameters/ConversationId'
+      responses:
+        '200':
+          description: Conversation assigned to the project
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectConversation'
+    delete:
+      tags:
+      - Project Conversations
+      operationId: removeConversationFromProject
+      parameters:
+      - $ref: '#/components/parameters/ProjectId'
+      - $ref: '#/components/parameters/ConversationId'
+      responses:
+        '204':
+          description: Conversation removed from the project
+  /projects/{project_id}/knowledge-packs:
+    get:
+      tags:
+      - Project Knowledge
+      operationId: listProjectKnowledgePacks
+      parameters:
+      - $ref: '#/components/parameters/ProjectId'
+      responses:
+        '200':
+          description: Knowledge packs available to the project
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectKnowledgePackPage'
+    post:
+      tags:
+      - Project Knowledge
+      operationId: attachKnowledgePackToProject
+      parameters:
+      - $ref: '#/components/parameters/ProjectId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectKnowledgePackAttachRequest'
+      responses:
+        '201':
+          description: Knowledge pack attached
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectKnowledgePack'
+  /projects/{project_id}/knowledge-packs/{pack_id}:
+    patch:
+      tags:
+      - Project Knowledge
+      operationId: updateProjectKnowledgePack
+      parameters:
+      - $ref: '#/components/parameters/ProjectId'
+      - $ref: '#/components/parameters/PackId'
+      requestBody:
+        required: true
+        content:
+          application/merge-patch+json:
+            schema:
+              $ref: '#/components/schemas/ProjectKnowledgePackUpdateRequest'
+      responses:
+        '200':
+          description: Project knowledge setting updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectKnowledgePack'
+    delete:
+      tags:
+      - Project Knowledge
+      operationId: detachKnowledgePackFromProject
+      parameters:
+      - $ref: '#/components/parameters/ProjectId'
+      - $ref: '#/components/parameters/PackId'
+      responses:
+        '204':
+          description: Knowledge pack detached from project
+  /projects/{project_id}/documents:
+    get:
+      tags:
+      - Project Knowledge
+      operationId: listProjectDocuments
+      parameters:
+      - $ref: '#/components/parameters/ProjectId'
+      - $ref: '#/components/parameters/Limit'
+      - $ref: '#/components/parameters/Cursor'
+      responses:
+        '200':
+          description: Documents explicitly attached to the project
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectDocumentPage'
+    post:
+      tags:
+      - Project Knowledge
+      operationId: attachDocumentToProject
+      parameters:
+      - $ref: '#/components/parameters/ProjectId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectDocumentAttachRequest'
+      responses:
+        '201':
+          description: Document attached
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectDocument'
+  /projects/{project_id}/files:
+    get:
+      tags:
+      - Project Files
+      operationId: listProjectFiles
+      parameters:
+      - $ref: '#/components/parameters/ProjectId'
+      - name: indexing_status
+        in: query
+        schema:
+          $ref: '#/components/schemas/ProjectFileIndexingStatus'
+      - $ref: '#/components/parameters/Limit'
+      - $ref: '#/components/parameters/Cursor'
+      responses:
+        '200':
+          description: Project files
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectFilePage'
+    post:
+      tags:
+      - Project Files
+      operationId: registerProjectFile
+      parameters:
+      - $ref: '#/components/parameters/ProjectId'
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectFileCreateRequest'
+      responses:
+        '201':
+          description: Project file registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectFile'
+  /projects/{project_id}/files/{file_id}:
+    get:
+      tags:
+      - Project Files
+      operationId: getProjectFile
+      parameters:
+      - $ref: '#/components/parameters/ProjectId'
+      - $ref: '#/components/parameters/FileId'
+      responses:
+        '200':
+          description: Project file
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectFile'
+    patch:
+      tags:
+      - Project Files
+      operationId: updateProjectFile
+      parameters:
+      - $ref: '#/components/parameters/ProjectId'
+      - $ref: '#/components/parameters/FileId'
+      requestBody:
+        required: true
+        content:
+          application/merge-patch+json:
+            schema:
+              $ref: '#/components/schemas/ProjectFileUpdateRequest'
+      responses:
+        '200':
+          description: Updated project file
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectFile'
+    delete:
+      tags:
+      - Project Files
+      operationId: removeProjectFile
+      parameters:
+      - $ref: '#/components/parameters/ProjectId'
+      - $ref: '#/components/parameters/FileId'
+      responses:
+        '204':
+          description: File removed from project
+  /projects/{project_id}/settings:
+    get:
+      tags:
+      - Project Settings
+      operationId: getProjectSettings
+      parameters:
+      - $ref: '#/components/parameters/ProjectId'
+      responses:
+        '200':
+          description: Project settings
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectSettings'
+    patch:
+      tags:
+      - Project Settings
+      operationId: updateProjectSettings
+      parameters:
+      - $ref: '#/components/parameters/ProjectId'
+      - $ref: '#/components/parameters/IfMatch'
+      requestBody:
+        required: true
+        content:
+          application/merge-patch+json:
+            schema:
+              $ref: '#/components/schemas/ProjectSettingsUpdateRequest'
+      responses:
+        '200':
+          description: Updated project settings
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectSettings'
+  /projects/{project_id}/retrieval-scope/preview:
+    post:
+      tags:
+      - Project Retrieval
+      operationId: previewProjectRetrievalScope
+      parameters:
+      - $ref: '#/components/parameters/ProjectId'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectRetrievalScopeOverride'
+      responses:
+        '200':
+          description: Resolved project retrieval scope preview
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResolvedProjectRetrievalScope'
+  /rag-runs/{rag_run_id}/inspector:
+    get:
+      tags:
+      - RAG Runs
+      - Evidence
+      operationId: getRagRunInspector
+      parameters:
+      - $ref: '#/components/parameters/RagRunId'
+      responses:
+        '200':
+          description: Read-only consolidated RAG run inspection view.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RagRunInspector'
+        '404':
+          description: Request could not be completed
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+              example:
+                type: https://angel.local/problems/resource_not_found
+                title: Not Found
+                status: 404
+                code: RESOURCE_NOT_FOUND
+                detail: The requested resource does not exist or is not accessible.
+                operation_id: getRagRunInspector
+                path: /rag-runs/{rag_run_id}/inspector
+components:
+  parameters:
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: false
+      schema:
+        type: string
+        minLength: 8
+        maxLength: 255
+    Limit:
+      name: limit
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 500
+        default: 50
+    Cursor:
+      name: cursor
+      in: query
+      schema:
+        type: string
+    RagRunId:
+      name: rag_run_id
+      in: path
+      required: true
+      schema:
+        type: string
+    EvaluationId:
+      name: evaluation_id
+      in: path
+      required: true
+      schema:
+        type: string
+    MeasurementId:
+      name: measurement_id
+      in: path
+      required: true
+      schema:
+        type: string
+    SnapshotId:
+      name: snapshot_id
+      in: path
+      required: true
+      schema:
+        type: string
+    RecommendationId:
+      name: recommendation_id
+      in: path
+      required: true
+      schema:
+        type: string
+    ChangeSetId:
+      name: change_set_id
+      in: path
+      required: true
+      schema:
+        type: string
+    OperationId:
+      name: operation_id
+      in: path
+      required: true
+      schema:
+        type: string
+    ProjectStatusFilter:
+      name: status
+      in: query
+      required: false
+      schema:
+        $ref: '#/components/schemas/ProjectStatus'
+    ProjectId:
+      name: project_id
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/Identifier'
+    ConversationId:
+      name: conversation_id
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/Identifier'
+    PackId:
+      name: pack_id
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/Identifier'
+    FileId:
+      name: file_id
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/Identifier'
+    IfMatch:
+      name: If-Match
+      in: header
+      required: true
+      schema:
+        type: string
+        minLength: 1
+  responses:
+    ProblemResponse:
+      description: Request could not be completed
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+    OperationAccepted:
+      description: Asynchronous operation accepted
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Operation'
+  schemas:
+    Identifier:
+      type: string
+      minLength: 1
+      maxLength: 128
+      pattern: ^[A-Za-z][A-Za-z0-9_-]*$
+    Timestamp:
+      type: string
+      format: date-time
+    Hash:
+      type: string
+      pattern: ^sha256:[a-fA-F0-9]{64}$
+    ResourceLinks:
+      type: object
+      additionalProperties:
+        type: string
+        format: uri-reference
+    MeasurementState:
+      type: string
+      enum:
+      - measured
+      - not_evaluated
+      - insufficient_evidence
+      - not_applicable
+      - failed
+    TriState:
+      type: string
+      enum:
+      - 'yes'
+      - 'no'
+      - unknown
+      - not_applicable
+    FailureClassification:
+      type:
+      - string
+      - 'null'
+      enum:
+      - out_of_scope
+      - knowledge_gap
+      - retrieval_failure
+      - ranking_failure
+      - context_selection_failure
+      - context_budget_failure
+      - reasoning_failure
+      - grounding_failure
+      - successful
+      - indeterminate
+      - null
+    ProblemDetails:
+      type: object
+      required:
+      - type
+      - title
+      - status
+      properties:
+        type:
+          type: string
+          format: uri-reference
+        title:
+          type: string
+        status:
+          type: integer
+          minimum: 100
+          maximum: 599
+        detail:
+          type: string
+        instance:
+          type: string
+          format: uri-reference
+        code:
+          type: string
+        recoverable:
+          type: boolean
+        trace_id:
+          type: string
+      additionalProperties: true
+    PageMetadata:
+      type: object
+      required:
+      - limit
+      - has_more
+      properties:
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 500
+        has_more:
+          type: boolean
+        next_cursor:
+          type:
+          - string
+          - 'null'
+    Operation:
+      type: object
+      required:
+      - operation_id
+      - operation_type
+      - status
+      - created_at
+      properties:
+        operation_id:
+          $ref: '#/components/schemas/Identifier'
+        operation_type:
+          type: string
+          enum:
+          - rag_run
+          - evaluation_run
+          - measurement_run
+          - snapshot_creation
+          - recommendation_run
+          - index_build
+          - recommendation_retest
+        status:
+          type: string
+          enum:
+          - queued
+          - running
+          - completed
+          - partially_completed
+          - failed
+          - canceled
+        progress:
+          type:
+          - object
+          - 'null'
+          properties:
+            completed:
+              type: integer
+              minimum: 0
+            total:
+              type: integer
+              minimum: 0
+            percentage:
+              type:
+              - number
+              - 'null'
+              minimum: 0
+              maximum: 100
+        result:
+          type:
+          - object
+          - 'null'
+          additionalProperties: true
+        error:
+          oneOf:
+          - $ref: '#/components/schemas/ProblemDetails'
+          - type: 'null'
+        created_at:
+          $ref: '#/components/schemas/Timestamp'
+        started_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        completed_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        links:
+          $ref: '#/components/schemas/ResourceLinks'
+    RetrievalScope:
+      type: object
+      properties:
+        pack_ids:
+          type: array
+          uniqueItems: true
+          items:
+            $ref: '#/components/schemas/Identifier'
+        document_ids:
+          type: array
+          uniqueItems: true
+          items:
+            $ref: '#/components/schemas/Identifier'
+        project_id:
+          type:
+          - string
+          - 'null'
+        include_memory:
+          type: boolean
+          default: true
+        include_conversation:
+          type: boolean
+          default: true
+        include_disabled_packs:
+          type: boolean
+          default: false
+    ContextConstraints:
+      type: object
+      required:
+      - maximum_context_tokens
+      - reserved_output_tokens
+      properties:
+        maximum_context_tokens:
+          type: integer
+          minimum: 256
+        maximum_knowledge_tokens:
+          type: integer
+          minimum: 0
+        maximum_memory_tokens:
+          type: integer
+          minimum: 0
+        maximum_conversation_tokens:
+          type: integer
+          minimum: 0
+        reserved_output_tokens:
+          type: integer
+          minimum: 0
+        maximum_chunks:
+          type: integer
+          minimum: 1
+        per_pack_chunk_limit:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+    RagRunCreateRequest:
+      type: object
+      required:
+      - question
+      - mode
+      - retrieval_profile_id
+      - constraints
+      properties:
+        question:
+          type: string
+          minLength: 1
+          maxLength: 20000
+        mode:
+          type: string
+          enum:
+          - retrieval_only
+          - context_only
+          - answer
+          - evaluation
+        conversation_id:
+          type:
+          - string
+          - 'null'
+        user_message_id:
+          type:
+          - string
+          - 'null'
+        evaluation_run_id:
+          type:
+          - string
+          - 'null'
+        retrieval_profile_id:
+          $ref: '#/components/schemas/Identifier'
+        scope:
+          $ref: '#/components/schemas/RetrievalScope'
+        constraints:
+          $ref: '#/components/schemas/ContextConstraints'
+        diagnostics:
+          type: object
+          properties:
+            retain_rejected_candidates:
+              type: boolean
+              default: true
+            retain_rendered_context:
+              type: boolean
+              default: true
+            retain_query_variants:
+              type: boolean
+              default: true
+            retain_events:
+              type: boolean
+              default: true
+        project_id:
+          type:
+          - string
+          - 'null'
+        project_scope_override:
+          oneOf:
+          - $ref: '#/components/schemas/ProjectRetrievalScopeOverride'
+          - type: 'null'
+    RagRunAccepted:
+      type: object
+      required:
+      - rag_run_id
+      - operation_id
+      - status
+      - links
+      properties:
+        rag_run_id:
+          $ref: '#/components/schemas/Identifier'
+        operation_id:
+          $ref: '#/components/schemas/Identifier'
+        status:
+          type: string
+          enum:
+          - queued
+          - running
+        links:
+          $ref: '#/components/schemas/ResourceLinks'
+    ContextSummary:
+      type: object
+      required:
+      - total_input_tokens
+      - model_context_limit
+      - reserved_output_tokens
+      - within_budget
+      properties:
+        system_tokens:
+          type: integer
+          minimum: 0
+        conversation_tokens:
+          type: integer
+          minimum: 0
+        memory_tokens:
+          type: integer
+          minimum: 0
+        knowledge_tokens:
+          type: integer
+          minimum: 0
+        project_tokens:
+          type: integer
+          minimum: 0
+        question_tokens:
+          type: integer
+          minimum: 0
+        total_input_tokens:
+          type: integer
+          minimum: 0
+        model_context_limit:
+          type: integer
+          minimum: 1
+        reserved_output_tokens:
+          type: integer
+          minimum: 0
+        within_budget:
+          type: boolean
+        truncation_applied:
+          type: boolean
+    RagRun:
+      type: object
+      required:
+      - rag_run_id
+      - status
+      - question
+      - configuration
+      - retrieval
+      - context
+      - started_at
+      properties:
+        rag_run_id:
+          $ref: '#/components/schemas/Identifier'
+        status:
+          type: string
+          enum:
+          - queued
+          - running
+          - completed
+          - partial
+          - failed
+          - canceled
+        question:
+          type: object
+          required:
+          - original
+          properties:
+            original:
+              type: string
+            normalized:
+              type:
+              - string
+              - 'null'
+            intent:
+              type:
+              - string
+              - 'null'
+            retrieval_required:
+              type: boolean
+        configuration:
+          type: object
+          required:
+          - retrieval_profile_id
+          - index_version_id
+          - retrieval_mode
+          - configuration_fingerprint
+          properties:
+            retrieval_profile_id:
+              $ref: '#/components/schemas/Identifier'
+            index_version_id:
+              $ref: '#/components/schemas/Identifier'
+            retrieval_mode:
+              type: string
+              enum:
+              - lexical
+              - semantic
+              - hybrid
+            configuration_fingerprint:
+              $ref: '#/components/schemas/Hash'
+        retrieval:
+          type: object
+          required:
+          - eligible_sources
+          - queries
+          - candidates
+          - selected
+          - rejected
+          properties:
+            eligible_sources:
+              type: integer
+              minimum: 0
+            sources_searched:
+              type: integer
+              minimum: 0
+            queries:
+              type: integer
+              minimum: 0
+            candidates:
+              type: integer
+              minimum: 0
+            selected:
+              type: integer
+              minimum: 0
+            rejected:
+              type: integer
+              minimum: 0
+            duplicates_removed:
+              type: integer
+              minimum: 0
+        context:
+          $ref: '#/components/schemas/ContextSummary'
+        answer:
+          oneOf:
+          - $ref: '#/components/schemas/AnswerReference'
+          - type: 'null'
+        failure_stage:
+          type:
+          - string
+          - 'null'
+        started_at:
+          $ref: '#/components/schemas/Timestamp'
+        completed_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        duration_ms:
+          type:
+          - integer
+          - 'null'
+          minimum: 0
+        links:
+          $ref: '#/components/schemas/ResourceLinks'
+        project_context:
+          oneOf:
+          - $ref: '#/components/schemas/RagRunProjectContext'
+          - type: 'null'
+    AnswerReference:
+      type: object
+      required:
+      - answer_id
+      - status
+      properties:
+        answer_id:
+          $ref: '#/components/schemas/Identifier'
+        status:
+          type: string
+          enum:
+          - pending
+          - generating
+          - completed
+          - failed
+    CandidateRejectionReason:
+      type:
+      - string
+      - 'null'
+      enum:
+      - below_threshold
+      - duplicate
+      - pack_limit
+      - document_limit
+      - token_budget
+      - reranked_out
+      - disabled_source
+      - stale_index
+      - manual_exclusion
+      - null
+    SourceReference:
+      type: object
+      required:
+      - pack_id
+      - document_id
+      - document_revision_id
+      - chunk_id
+      properties:
+        pack_id:
+          $ref: '#/components/schemas/Identifier'
+        pack_name:
+          type: string
+        document_id:
+          $ref: '#/components/schemas/Identifier'
+        document_revision_id:
+          $ref: '#/components/schemas/Identifier'
+        document_name:
+          type: string
+        section_id:
+          type:
+          - string
+          - 'null'
+        section_heading:
+          type:
+          - string
+          - 'null'
+        chunk_id:
+          $ref: '#/components/schemas/Identifier'
+        content_hash:
+          $ref: '#/components/schemas/Hash'
+    AlgorithmScore:
+      type: object
+      required:
+      - algorithm
+      properties:
+        algorithm:
+          type: string
+        algorithm_version:
+          type:
+          - string
+          - 'null'
+        raw:
+          type:
+          - number
+          - 'null'
+        normalized:
+          type:
+          - number
+          - 'null'
+          minimum: 0
+          maximum: 1
+    CandidateScores:
+      type: object
+      properties:
+        bm25:
+          oneOf:
+          - $ref: '#/components/schemas/AlgorithmScore'
+          - type: 'null'
+        keyword_overlap:
+          oneOf:
+          - $ref: '#/components/schemas/AlgorithmScore'
+          - type: 'null'
+        semantic_similarity:
+          oneOf:
+          - $ref: '#/components/schemas/AlgorithmScore'
+          - type: 'null'
+        reranker:
+          oneOf:
+          - $ref: '#/components/schemas/AlgorithmScore'
+          - type: 'null'
+        final:
+          oneOf:
+          - $ref: '#/components/schemas/AlgorithmScore'
+          - type: 'null'
+    CandidateRanks:
+      type: object
+      properties:
+        lexical:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        semantic:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        merged:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        reranked:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        final:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+    RetrievalCandidate:
+      type: object
+      required:
+      - candidate_id
+      - source
+      - scores
+      - ranks
+      - selected
+      - token_count
+      properties:
+        candidate_id:
+          $ref: '#/components/schemas/Identifier'
+        source:
+          $ref: '#/components/schemas/SourceReference'
+        scores:
+          $ref: '#/components/schemas/CandidateScores'
+        ranks:
+          $ref: '#/components/schemas/CandidateRanks'
+        selected:
+          type: boolean
+        rejection_reason:
+          $ref: '#/components/schemas/CandidateRejectionReason'
+        token_count:
+          type: integer
+          minimum: 0
+        inclusion_reason:
+          type:
+          - string
+          - 'null'
+    RetrievalCandidatePage:
+      type: object
+      required:
+      - items
+      - page
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/RetrievalCandidate'
+        page:
+          $ref: '#/components/schemas/PageMetadata'
+    ContextItem:
+      type: object
+      required:
+      - context_item_id
+      - type
+      - position
+      - token_count
+      properties:
+        context_item_id:
+          $ref: '#/components/schemas/Identifier'
+        type:
+          type: string
+          enum:
+          - system
+          - conversation
+          - memory
+          - knowledge
+          - project
+          - question
+        source_id:
+          type:
+          - string
+          - 'null'
+        candidate_id:
+          type:
+          - string
+          - 'null'
+        position:
+          type: integer
+          minimum: 0
+        source_marker:
+          type:
+          - string
+          - 'null'
+        token_count:
+          type: integer
+          minimum: 0
+        rendered_text_hash:
+          type:
+          - string
+          - 'null'
+        inclusion_reason:
+          type:
+          - string
+          - 'null'
+    ContextBuild:
+      type: object
+      required:
+      - context_build_id
+      - rag_run_id
+      - budget
+      - validation
+      - items
+      - builder_version
+      - context_hash
+      properties:
+        context_build_id:
+          $ref: '#/components/schemas/Identifier'
+        rag_run_id:
+          $ref: '#/components/schemas/Identifier'
+        budget:
+          $ref: '#/components/schemas/ContextSummary'
+        validation:
+          type: object
+          required:
+          - within_budget
+          - truncation_applied
+          properties:
+            within_budget:
+              type: boolean
+            truncation_applied:
+              type: boolean
+            truncation_reason:
+              type:
+              - string
+              - 'null'
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ContextItem'
+        builder_version:
+          type: string
+        context_hash:
+          $ref: '#/components/schemas/Hash'
+    HealthReference:
+      type: object
+      required:
+      - score
+      - status
+      properties:
+        score:
+          type:
+          - number
+          - 'null'
+          minimum: 0
+          maximum: 100
+        status:
+          $ref: '#/components/schemas/MeasurementState'
+    GeneratedAnswer:
+      type: object
+      required:
+      - answer_id
+      - rag_run_id
+      - status
+      - model
+      - answer_health
+      properties:
+        answer_id:
+          $ref: '#/components/schemas/Identifier'
+        rag_run_id:
+          $ref: '#/components/schemas/Identifier'
+        status:
+          type: string
+          enum:
+          - pending
+          - generating
+          - completed
+          - failed
+        text:
+          type:
+          - string
+          - 'null'
+        model:
+          type: object
+          required:
+          - provider
+          - name
+          properties:
+            provider:
+              type: string
+            name:
+              type: string
+            configuration_fingerprint:
+              type:
+              - string
+              - 'null'
+        sources:
+          type: array
+          items:
+            $ref: '#/components/schemas/SourceReference'
+        answer_health:
+          $ref: '#/components/schemas/HealthReference'
+    EvaluationRunCreateRequest:
+      type: object
+      required:
+      - evaluation_set_id
+      - run_mode
+      - retrieval_profile_id
+      - index_version_id
+      properties:
+        evaluation_set_id:
+          $ref: '#/components/schemas/Identifier'
+        run_mode:
+          type: string
+          enum:
+          - knowledge_only
+          - retrieval_only
+          - full_answer
+        retrieval_profile_id:
+          $ref: '#/components/schemas/Identifier'
+        index_version_id:
+          $ref: '#/components/schemas/Identifier'
+        model_configuration:
+          type:
+          - object
+          - 'null'
+          additionalProperties: true
+    ExistingRagEvaluationRequest:
+      type: object
+      required:
+      - rag_run_id
+      - evaluators
+      properties:
+        rag_run_id:
+          $ref: '#/components/schemas/Identifier'
+        evaluation_case_id:
+          type:
+          - string
+          - 'null'
+        evaluators:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items:
+            type: string
+            enum:
+            - knowledge_presence
+            - retrieval
+            - context_selection
+            - answer_usage
+            - answer_grounding
+    Evaluation:
+      type: object
+      required:
+      - evaluation_id
+      - rag_run_id
+      - diagnosis
+      - created_at
+      properties:
+        evaluation_id:
+          $ref: '#/components/schemas/Identifier'
+        evaluation_run_id:
+          type:
+          - string
+          - 'null'
+        evaluation_case_id:
+          type:
+          - string
+          - 'null'
+        rag_run_id:
+          $ref: '#/components/schemas/Identifier'
+        diagnosis:
+          type: object
+          required:
+          - in_scope
+          - knowledge_present
+          - expected_evidence_retrieved
+          - evidence_in_context
+          - evidence_used
+          - claims_grounded
+          - classification
+          properties:
+            in_scope:
+              $ref: '#/components/schemas/TriState'
+            knowledge_present:
+              $ref: '#/components/schemas/TriState'
+            expected_evidence_retrieved:
+              $ref: '#/components/schemas/TriState'
+            evidence_in_context:
+              $ref: '#/components/schemas/TriState'
+            evidence_used:
+              $ref: '#/components/schemas/TriState'
+            claims_grounded:
+              $ref: '#/components/schemas/TriState'
+            classification:
+              $ref: '#/components/schemas/FailureClassification'
+        explanation:
+          type:
+          - object
+          - 'null'
+          additionalProperties: true
+        created_at:
+          $ref: '#/components/schemas/Timestamp'
+    EvidenceNode:
+      type: object
+      required:
+      - id
+      - type
+      - label
+      properties:
+        id:
+          $ref: '#/components/schemas/Identifier'
+        type:
+          type: string
+          enum:
+          - pack
+          - document
+          - document_revision
+          - section
+          - chunk
+          - retrieval_candidate
+          - context_item
+          - answer
+          - claim
+          - evaluation
+          - measurement
+          - snapshot
+          - recommendation
+        label:
+          type: string
+        attributes:
+          type: object
+          additionalProperties: true
+        resource_uri:
+          type:
+          - string
+          - 'null'
+          format: uri-reference
+    EvidenceEdge:
+      type: object
+      required:
+      - from
+      - to
+      - relationship
+      properties:
+        from:
+          $ref: '#/components/schemas/Identifier'
+        to:
+          $ref: '#/components/schemas/Identifier'
+        relationship:
+          type: string
+          enum:
+          - contains
+          - revised_as
+          - indexed_as
+          - retrieved_as
+          - scored_as
+          - rejected_as
+          - selected_as
+          - included_as
+          - excluded_from
+          - supports
+          - partially_supports
+          - contradicts
+          - measured_by
+          - summarized_by
+          - justifies
+          - possible_contributor
+        explanation:
+          type:
+          - string
+          - 'null'
+    EvidenceGraph:
+      type: object
+      required:
+      - root_id
+      - nodes
+      - edges
+      properties:
+        root_id:
+          $ref: '#/components/schemas/Identifier'
+        nodes:
+          type: array
+          items:
+            $ref: '#/components/schemas/EvidenceNode'
+        edges:
+          type: array
+          items:
+            $ref: '#/components/schemas/EvidenceEdge'
+    MeasurementSubject:
+      type: object
+      required:
+      - type
+      - id
+      properties:
+        type:
+          type: string
+          enum:
+          - library
+          - pack
+          - document
+          - section
+          - chunk
+          - evaluation_set
+          - evaluation_run
+        id:
+          $ref: '#/components/schemas/Identifier'
+    MeasurementRunRequest:
+      type: object
+      required:
+      - subject
+      - evaluation_run_id
+      - metric_keys
+      properties:
+        subject:
+          $ref: '#/components/schemas/MeasurementSubject'
+        evaluation_run_id:
+          $ref: '#/components/schemas/Identifier'
+        metric_keys:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items:
+            type: string
+    Measurement:
+      type: object
+      required:
+      - measurement_id
+      - metric
+      - subject
+      - value
+      - status
+      - measured_at
+      properties:
+        measurement_id:
+          $ref: '#/components/schemas/Identifier'
+        metric:
+          type: object
+          required:
+          - key
+          - display_name
+          - dimension
+          properties:
+            key:
+              type: string
+            display_name:
+              type: string
+            dimension:
+              type: string
+              enum:
+              - knowledge
+              - retrieval
+              - answer
+        subject:
+          $ref: '#/components/schemas/MeasurementSubject'
+        value:
+          type:
+          - number
+          - string
+          - 'null'
+        unit:
+          type:
+          - string
+          - 'null'
+        status:
+          $ref: '#/components/schemas/MeasurementState'
+        calculation:
+          type:
+          - object
+          - 'null'
+          additionalProperties: true
+        evidence_summary:
+          type:
+          - object
+          - 'null'
+          additionalProperties: true
+        measured_at:
+          $ref: '#/components/schemas/Timestamp'
+    HealthSnapshotCreateRequest:
+      type: object
+      required:
+      - scope
+      - evaluation_run_id
+      - index_version_id
+      - measurement_ids
+      properties:
+        scope:
+          $ref: '#/components/schemas/MeasurementSubject'
+        evaluation_run_id:
+          $ref: '#/components/schemas/Identifier'
+        index_version_id:
+          $ref: '#/components/schemas/Identifier'
+        measurement_ids:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items:
+            $ref: '#/components/schemas/Identifier'
+    HealthSnapshot:
+      type: object
+      required:
+      - snapshot_id
+      - scope
+      - index_version_id
+      - health
+      - created_at
+      properties:
+        snapshot_id:
+          $ref: '#/components/schemas/Identifier'
+        scope:
+          $ref: '#/components/schemas/MeasurementSubject'
+        evaluation_run_id:
+          type:
+          - string
+          - 'null'
+        index_version_id:
+          $ref: '#/components/schemas/Identifier'
+        health:
+          type: object
+          required:
+          - knowledge
+          - retrieval
+          - answer
+          properties:
+            knowledge:
+              $ref: '#/components/schemas/HealthReference'
+            retrieval:
+              $ref: '#/components/schemas/HealthReference'
+            answer:
+              $ref: '#/components/schemas/HealthReference'
+        created_at:
+          $ref: '#/components/schemas/Timestamp'
+    SnapshotComparison:
+      type: object
+      required:
+      - current_snapshot_id
+      - previous_snapshot_id
+      - changes
+      properties:
+        current_snapshot_id:
+          $ref: '#/components/schemas/Identifier'
+        previous_snapshot_id:
+          $ref: '#/components/schemas/Identifier'
+        changes:
+          type: array
+          items:
+            type: object
+            required:
+            - metric_key
+            - before
+            - after
+            - delta
+            properties:
+              metric_key:
+                type: string
+              before:
+                type:
+                - number
+                - 'null'
+              after:
+                type:
+                - number
+                - 'null'
+              delta:
+                type:
+                - number
+                - 'null'
+        possible_contributors:
+          type: array
+          items:
+            $ref: '#/components/schemas/EvidenceNode'
+    RecommendationRunRequest:
+      type: object
+      required:
+      - snapshot_id
+      properties:
+        snapshot_id:
+          $ref: '#/components/schemas/Identifier'
+        maximum_recommendations:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 5
+        minimum_impact:
+          type: string
+          enum:
+          - low
+          - medium
+          - high
+          - critical
+          default: medium
+    Recommendation:
+      type: object
+      required:
+      - recommendation_id
+      - scope
+      - type
+      - impact
+      - title
+      - problem_statement
+      - suggested_action
+      - status
+      - evidence
+      - generated_at
+      properties:
+        recommendation_id:
+          $ref: '#/components/schemas/Identifier'
+        scope:
+          $ref: '#/components/schemas/MeasurementSubject'
+        type:
+          type: string
+          enum:
+          - add_knowledge
+          - improve_document
+          - split_document
+          - merge_fragments
+          - remove_duplicates
+          - improve_metadata
+          - adjust_chunking
+          - adjust_retrieval
+          - run_evaluation
+        impact:
+          type: string
+          enum:
+          - low
+          - medium
+          - high
+          - critical
+        title:
+          type: string
+        problem_statement:
+          type: string
+        suggested_action:
+          type: string
+        target_metric_key:
+          type:
+          - string
+          - 'null'
+        status:
+          type: string
+          enum:
+          - suggested
+          - accepted
+          - dismissed
+          - in_progress
+          - resolved
+          - superseded
+        evidence:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/EvidenceNode'
+        generated_at:
+          $ref: '#/components/schemas/Timestamp'
+    RecommendationDecisionRequest:
+      type: object
+      required:
+      - decision
+      properties:
+        decision:
+          type: string
+          enum:
+          - accepted
+          - dismissed
+        reason:
+          type:
+          - string
+          - 'null'
+          enum:
+          - out_of_scope
+          - incorrect_assumption
+          - insufficient_evidence
+          - planned_later
+          - already_addressed
+          - other
+          - null
+        note:
+          type:
+          - string
+          - 'null'
+    RetestRequest:
+      type: object
+      required:
+      - evaluation_set_id
+      - index_version_id
+      - compare_against_snapshot_id
+      properties:
+        evaluation_set_id:
+          $ref: '#/components/schemas/Identifier'
+        index_version_id:
+          $ref: '#/components/schemas/Identifier'
+        compare_against_snapshot_id:
+          $ref: '#/components/schemas/Identifier'
+    KnowledgeChangeSetCreateRequest:
+      type: object
+      required:
+      - pack_id
+      - change_type
+      - description
+      properties:
+        pack_id:
+          $ref: '#/components/schemas/Identifier'
+        change_type:
+          type: string
+          enum:
+          - import
+          - reimport
+          - document_added
+          - document_modified
+          - document_removed
+          - metadata_changed
+          - rechunked
+          - reindexed
+          - pack_enabled
+          - pack_disabled
+        description:
+          type: string
+        recommendation_id:
+          type:
+          - string
+          - 'null'
+    KnowledgeChangeItem:
+      type: object
+      required:
+      - entity_type
+      - entity_id
+      - operation
+      properties:
+        entity_type:
+          type: string
+          enum:
+          - pack
+          - document
+          - document_revision
+          - section
+          - chunk
+          - manifest
+          - index
+        entity_id:
+          $ref: '#/components/schemas/Identifier'
+        operation:
+          type: string
+          enum:
+          - added
+          - modified
+          - removed
+          - enabled
+          - disabled
+        before_hash:
+          type:
+          - string
+          - 'null'
+        after_hash:
+          type:
+          - string
+          - 'null'
+    KnowledgeChangeSet:
+      type: object
+      required:
+      - change_set_id
+      - pack_id
+      - change_type
+      - description
+      - status
+      - created_at
+      properties:
+        change_set_id:
+          $ref: '#/components/schemas/Identifier'
+        pack_id:
+          $ref: '#/components/schemas/Identifier'
+        change_type:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+          enum:
+          - draft
+          - completed
+          - canceled
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/KnowledgeChangeItem'
+        created_at:
+          $ref: '#/components/schemas/Timestamp'
+    IndexBuildRequest:
+      type: object
+      required:
+      - reason
+      - mode
+      - activate_on_success
+      properties:
+        reason:
+          type: string
+          enum:
+          - knowledge_change
+          - manual
+          - repair
+          - migration
+        change_set_id:
+          type:
+          - string
+          - 'null'
+        mode:
+          type: string
+          enum:
+          - incremental
+          - full
+        activate_on_success:
+          type: boolean
+    ProjectStatus:
+      type: string
+      enum:
+      - active
+      - archived
+    Project:
+      type: object
+      required:
+      - project_id
+      - name
+      - status
+      - settings
+      - counts
+      - created_at
+      - updated_at
+      properties:
+        project_id:
+          $ref: '#/components/schemas/Identifier'
+        name:
+          type: string
+          minLength: 1
+          maxLength: 160
+        description:
+          type:
+          - string
+          - 'null'
+          maxLength: 4000
+        status:
+          $ref: '#/components/schemas/ProjectStatus'
+        icon:
+          type:
+          - string
+          - 'null'
+        color:
+          type:
+          - string
+          - 'null'
+          pattern: ^#[a-fA-F0-9]{6}
+    ProjectWorkspace:
+      type: object
+      required:
+      - project
+      - recent_conversations
+      - knowledge_summary
+      - file_summary
+      - retrieval_scope
+      properties:
+        project:
+          $ref: '#/components/schemas/Project'
+        recent_conversations:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProjectConversation'
+        knowledge_summary:
+          type: object
+          required:
+          - packs
+          - documents
+          - enabled_packs
+          properties:
+            packs:
+              type: integer
+              minimum: 0
+            documents:
+              type: integer
+              minimum: 0
+            enabled_packs:
+              type: integer
+              minimum: 0
+        file_summary:
+          type: object
+          required:
+          - files
+          - indexed
+          - pending
+          - failed
+          properties:
+            files:
+              type: integer
+              minimum: 0
+            indexed:
+              type: integer
+              minimum: 0
+            pending:
+              type: integer
+              minimum: 0
+            failed:
+              type: integer
+              minimum: 0
+        retrieval_scope:
+          $ref: '#/components/schemas/ProjectRetrievalPolicy'
+    ProjectSettingsInput:
+      type: object
+      properties:
+        default_model:
+          type:
+          - string
+          - 'null'
+        retrieval_policy:
+          $ref: '#/components/schemas/ProjectRetrievalPolicyInput'
+    ProjectSettings:
+      type: object
+      required:
+      - retrieval_policy
+      - updated_at
+      properties:
+        default_model:
+          type:
+          - string
+          - 'null'
+        retrieval_policy:
+          $ref: '#/components/schemas/ProjectRetrievalPolicy'
+        updated_at:
+          $ref: '#/components/schemas/Timestamp'
+    ProjectSettingsUpdateRequest:
+      type: object
+      minProperties: 1
+      properties:
+        default_model:
+          type:
+          - string
+          - 'null'
+        retrieval_policy:
+          $ref: '#/components/schemas/ProjectRetrievalPolicyInput'
+    ProjectRetrievalPolicyInput:
+      type: object
+      properties:
+        include_project_knowledge:
+          type: boolean
+          default: true
+        include_project_files:
+          type: boolean
+          default: true
+        include_project_conversations:
+          type: boolean
+          default: true
+        include_global_knowledge:
+          type: boolean
+          default: true
+        include_memory:
+          type: boolean
+          default: true
+        maximum_project_chunks:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        maximum_global_chunks:
+          type:
+          - integer
+          - 'null'
+          minimum: 0
+    ProjectRetrievalPolicy:
+      allOf:
+      - $ref: '#/components/schemas/ProjectRetrievalPolicyInput'
+      - type: object
+        required:
+        - include_project_knowledge
+        - include_project_files
+        - include_project_conversations
+        - include_global_knowledge
+        - include_memory
+    ProjectRetrievalScopeOverride:
+      type: object
+      properties:
+        include_project_knowledge:
+          type: boolean
+        include_project_files:
+          type: boolean
+        include_project_conversations:
+          type: boolean
+        include_global_knowledge:
+          type: boolean
+        include_memory:
+          type: boolean
+        additional_pack_ids:
+          type: array
+          uniqueItems: true
+          items:
+            $ref: '#/components/schemas/Identifier'
+        excluded_pack_ids:
+          type: array
+          uniqueItems: true
+          items:
+            $ref: '#/components/schemas/Identifier'
+        additional_document_ids:
+          type: array
+          uniqueItems: true
+          items:
+            $ref: '#/components/schemas/Identifier'
+    ResolvedProjectRetrievalScope:
+      type: object
+      required:
+      - project
+      - policy
+      - sources
+      - counts
+      - scope_fingerprint
+      - resolved_at
+      properties:
+        project:
+          $ref: '#/components/schemas/ProjectReference'
+        policy:
+          $ref: '#/components/schemas/ProjectRetrievalPolicy'
+        sources:
+          type: array
+          items:
+            $ref: '#/components/schemas/ResolvedRetrievalSource'
+        counts:
+          type: object
+          required:
+          - conversations
+          - knowledge_packs
+          - documents
+          - files
+          properties:
+            conversations:
+              type: integer
+              minimum: 0
+            knowledge_packs:
+              type: integer
+              minimum: 0
+            documents:
+              type: integer
+              minimum: 0
+            files:
+              type: integer
+              minimum: 0
+            global_knowledge_packs:
+              type: integer
+              minimum: 0
+        scope_fingerprint:
+          $ref: '#/components/schemas/Hash'
+        resolved_at:
+          $ref: '#/components/schemas/Timestamp'
+    ResolvedRetrievalSource:
+      type: object
+      required:
+      - source_type
+      - source_id
+      - source_scope
+      - eligible
+      properties:
+        source_type:
+          type: string
+          enum:
+          - project_conversation
+          - project_knowledge_pack
+          - project_document
+          - project_file
+          - global_knowledge_pack
+          - global_document
+          - memory
+        source_id:
+          $ref: '#/components/schemas/Identifier'
+        source_scope:
+          type: string
+          enum:
+          - project
+          - global
+          - memory
+        eligible:
+          type: boolean
+        enabled:
+          type: boolean
+        exclusion_reason:
+          type:
+          - string
+          - 'null'
+    ProjectConversation:
+      type: object
+      required:
+      - project_id
+      - conversation_id
+      - title
+      - created_at
+      - updated_at
+      properties:
+        project_id:
+          $ref: '#/components/schemas/Identifier'
+        conversation_id:
+          $ref: '#/components/schemas/Identifier'
+        title:
+          type: string
+        pinned:
+          type: boolean
+          default: false
+        message_count:
+          type: integer
+          minimum: 0
+        created_at:
+          $ref: '#/components/schemas/Timestamp'
+        updated_at:
+          $ref: '#/components/schemas/Timestamp'
+    ProjectConversationCreateRequest:
+      type: object
+      properties:
+        title:
+          type:
+          - string
+          - 'null'
+        initial_message:
+          type:
+          - string
+          - 'null'
+    ProjectConversationPage:
+      type: object
+      required:
+      - items
+      - page
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProjectConversation'
+        page:
+          $ref: '#/components/schemas/PageMetadata'
+    ProjectKnowledgePack:
+      type: object
+      required:
+      - project_id
+      - pack_id
+      - pack_name
+      - enabled
+      - priority
+      - attached_at
+      properties:
+        project_id:
+          $ref: '#/components/schemas/Identifier'
+        pack_id:
+          $ref: '#/components/schemas/Identifier'
+        pack_name:
+          type: string
+        enabled:
+          type: boolean
+        priority:
+          type: integer
+          minimum: 0
+          maximum: 100
+        document_count:
+          type: integer
+          minimum: 0
+        chunk_count:
+          type: integer
+          minimum: 0
+        attached_at:
+          $ref: '#/components/schemas/Timestamp'
+    ProjectKnowledgePackAttachRequest:
+      type: object
+      required:
+      - pack_id
+      properties:
+        pack_id:
+          $ref: '#/components/schemas/Identifier'
+        enabled:
+          type: boolean
+          default: true
+        priority:
+          type: integer
+          minimum: 0
+          maximum: 100
+          default: 50
+    ProjectKnowledgePackUpdateRequest:
+      type: object
+      minProperties: 1
+      properties:
+        enabled:
+          type: boolean
+        priority:
+          type: integer
+          minimum: 0
+          maximum: 100
+    ProjectKnowledgePackPage:
+      type: object
+      required:
+      - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProjectKnowledgePack'
+    ProjectDocument:
+      type: object
+      required:
+      - project_id
+      - document_id
+      - display_name
+      - enabled
+      - attached_at
+      properties:
+        project_id:
+          $ref: '#/components/schemas/Identifier'
+        document_id:
+          $ref: '#/components/schemas/Identifier'
+        pack_id:
+          type:
+          - string
+          - 'null'
+        display_name:
+          type: string
+        enabled:
+          type: boolean
+        attached_at:
+          $ref: '#/components/schemas/Timestamp'
+    ProjectDocumentAttachRequest:
+      type: object
+      required:
+      - document_id
+      properties:
+        document_id:
+          $ref: '#/components/schemas/Identifier'
+        enabled:
+          type: boolean
+          default: true
+    ProjectDocumentPage:
+      type: object
+      required:
+      - items
+      - page
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProjectDocument'
+        page:
+          $ref: '#/components/schemas/PageMetadata'
+    ProjectFileIndexingStatus:
+      type: string
+      enum:
+      - not_indexed
+      - pending
+      - indexing
+      - indexed
+      - failed
+      - excluded
+    ProjectFile:
+      type: object
+      required:
+      - file_id
+      - project_id
+      - display_name
+      - media_type
+      - storage_reference
+      - include_in_retrieval
+      - indexing_status
+      - created_at
+      properties:
+        file_id:
+          $ref: '#/components/schemas/Identifier'
+        project_id:
+          $ref: '#/components/schemas/Identifier'
+        display_name:
+          type: string
+        media_type:
+          type: string
+        storage_reference:
+          type: string
+        content_hash:
+          type:
+          - string
+          - 'null'
+        size_bytes:
+          type: integer
+          minimum: 0
+        include_in_retrieval:
+          type: boolean
+        indexing_status:
+          $ref: '#/components/schemas/ProjectFileIndexingStatus'
+        document_id:
+          type:
+          - string
+          - 'null'
+        created_at:
+          $ref: '#/components/schemas/Timestamp'
+        indexed_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        indexing_error:
+          type:
+          - string
+          - 'null'
+    ProjectFileCreateRequest:
+      type: object
+      required:
+      - display_name
+      - media_type
+      - storage_reference
+      properties:
+        display_name:
+          type: string
+        media_type:
+          type: string
+        storage_reference:
+          type: string
+        content_hash:
+          type:
+          - string
+          - 'null'
+        size_bytes:
+          type:
+          - integer
+          - 'null'
+          minimum: 0
+        include_in_retrieval:
+          type: boolean
+          default: true
+    ProjectFileUpdateRequest:
+      type: object
+      minProperties: 1
+      properties:
+        display_name:
+          type: string
+        include_in_retrieval:
+          type: boolean
+    ProjectFilePage:
+      type: object
+      required:
+      - items
+      - page
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProjectFile'
+        page:
+          $ref: '#/components/schemas/PageMetadata'
+    ProjectReference:
+      type: object
+      required:
+      - project_id
+      - project_name
+      properties:
+        project_id:
+          $ref: '#/components/schemas/Identifier'
+        project_name:
+          type: string
+    RagRunProjectContext:
+      type: object
+      required:
+      - project
+      - resolved_scope
+      - override_applied
+      properties:
+        project:
+          $ref: '#/components/schemas/ProjectReference'
+        resolved_scope:
+          $ref: '#/components/schemas/ResolvedProjectRetrievalScope'
+        override_applied:
+          type: boolean
+    ProjectCreateRequest:
+      type: object
+      required:
+      - name
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 160
+        description:
+          type:
+          - string
+          - 'null'
+          maxLength: 4000
+        icon:
+          type:
+          - string
+          - 'null'
+        color:
+          type:
+          - string
+          - 'null'
+          pattern: ^#[a-fA-F0-9]{6}$
+        settings:
+          $ref: '#/components/schemas/ProjectSettingsInput'
+    ProjectUpdateRequest:
+      type: object
+      minProperties: 1
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 160
+        description:
+          type:
+          - string
+          - 'null'
+          maxLength: 4000
+        icon:
+          type:
+          - string
+          - 'null'
+        color:
+          type:
+          - string
+          - 'null'
+          pattern: ^#[a-fA-F0-9]{6}$
+        settings:
+          $ref: '#/components/schemas/ProjectSettingsInput'
+    ProjectCounts:
+      type: object
+      required:
+      - conversations
+      - knowledge_packs
+      - documents
+      - files
+      properties:
+        conversations:
+          type: integer
+          minimum: 0
+        knowledge_packs:
+          type: integer
+          minimum: 0
+        documents:
+          type: integer
+          minimum: 0
+        files:
+          type: integer
+          minimum: 0
+    ProjectPage:
+      type: object
+      required:
+      - items
+      - page
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Project'
+        page:
+          $ref: '#/components/schemas/PageMetadata'
+    RagRunSummary:
+      type: object
+      required:
+      - rag_run_id
+      - status
+      - question
+      - configuration
+      - retrieval
+      - context
+      properties:
+        rag_run_id:
+          $ref: '#/components/schemas/Identifier'
+        status:
+          type: string
+        question:
+          type: object
+          additionalProperties: true
+        configuration:
+          type: object
+          additionalProperties: true
+        retrieval:
+          type: object
+          additionalProperties: true
+        context:
+          $ref: '#/components/schemas/ContextSummary'
+        answer:
+          oneOf:
+          - $ref: '#/components/schemas/AnswerReference'
+          - type: 'null'
+        project_context:
+          oneOf:
+          - $ref: '#/components/schemas/RagRunProjectContext'
+          - type: 'null'
+    RetrievalInspection:
+      type: object
+      required:
+      - eligible_sources
+      - sources_searched
+      - queries
+      - candidates
+      - selected
+      - rejected
+      properties:
+        eligible_sources:
+          type: integer
+          minimum: 0
+        sources_searched:
+          type: integer
+          minimum: 0
+        queries:
+          type: integer
+          minimum: 0
+        candidates:
+          type: integer
+          minimum: 0
+        selected:
+          type: integer
+          minimum: 0
+        rejected:
+          type: integer
+          minimum: 0
+        duplicates_removed:
+          type: integer
+          minimum: 0
+    RagRunInspector:
+      type: object
+      required:
+      - summary
+      - retrieval
+      - candidates
+      - context
+      - answer
+      - evaluation
+      - evidence
+      - measurements
+      - snapshots
+      properties:
+        summary:
+          $ref: '#/components/schemas/RagRunSummary'
+        retrieval:
+          $ref: '#/components/schemas/RetrievalInspection'
+        candidates:
+          type: array
+          items:
+            $ref: '#/components/schemas/RetrievalCandidate'
+        context:
+          $ref: '#/components/schemas/ContextBuild'
+        answer:
+          $ref: '#/components/schemas/GeneratedAnswer'
+        evaluation:
+          oneOf:
+          - $ref: '#/components/schemas/Evaluation'
+          - type: 'null'
+        evidence:
+          oneOf:
+          - $ref: '#/components/schemas/EvidenceGraph'
+          - type: 'null'
+        measurements:
+          type: array
+          items:
+            $ref: '#/components/schemas/Measurement'
+        snapshots:
+          type: array
+          items:
+            $ref: '#/components/schemas/HealthSnapshot'

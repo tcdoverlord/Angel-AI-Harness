@@ -1,0 +1,34 @@
+{
+  "build": "4.3.1-B",
+  "title": "Conversation Intelligence - Context Engine",
+  "status": "Frozen Development Build",
+  "baseline": "4.3.1-A",
+  "goal": "Centralize context construction",
+  "implemented": [
+    "ContextAssembler service",
+    "centralized prompt construction",
+    "context inspection trace",
+    "token distribution diagnostics",
+    "truncation decision diagnostics",
+    "conditional project context",
+    "conditional knowledge context",
+    "verified-input evidence and tool-result slots"
+  ],
+  "unchanged_boundaries": [
+    "SQLite schema",
+    "ConversationStore authority",
+    "workspace UI",
+    "model selection",
+    "confidence system",
+    "conversation summarization"
+  ],
+  "validation": {
+    "pytest": "63 passed",
+    "compileall": "passed",
+    "windows_exe": "not run; Linux validation environment"
+  },
+  "inspection_endpoints": [
+    "/api/context/diagnostics",
+    "/api/context/trace?conversation_id=<id>"
+  ]
+}

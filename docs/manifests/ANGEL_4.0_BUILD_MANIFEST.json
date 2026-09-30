@@ -1,0 +1,23 @@
+{
+  "name": "Angel Platform",
+  "version": "4.0.0",
+  "release": "Knowledge-First",
+  "focus": [
+    "conversation-first UI",
+    "Knowledge Center",
+    "Markdown knowledge",
+    "knowledge packs",
+    "bounded local retrieval",
+    "persistent conversations"
+  ],
+  "primary_user_data": "%USERPROFILE%/Angel_Platform",
+  "knowledge_root": "%USERPROFILE%/Angel_Platform/knowledge",
+  "modules_primary_ui": false,
+  "verification": {
+    "pytest": "31 passed",
+    "python_compile": "passed",
+    "javascript_syntax": "passed",
+    "knowledge_smoke_test": "passed",
+    "http_smoke_test": "passed"
+  }
+}

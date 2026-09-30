@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Angel Nexus 4.2 — Unified Workspace</title><link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+<div class="app-shell">
+<header class="topbar">
+  <div class="brand"><div class="wing">🪽</div><div><h1>Angel</h1><p>Unified workspace</p></div></div>
+  <div class="top-status">
+    <span id="activeProject">Global chat</span>
+    <span id="backendState" class="status-pill">● Backend status loading…</span>
+    <span id="modelState" class="status-pill">Model status loading…</span><select id="model" hidden><option>llama3.2:3b</option></select>
+  </div>
+</header>
+<div class="layout">
+<aside class="sidebar">
+  <button class="new-chat" id="newChatSide">＋ New Chat</button>
+  <nav class="primary-nav" aria-label="Primary">
+    <button class="side-link active" data-page="home">⌂ Home</button>
+    <button class="side-link" data-page="chat">💬 Chats</button>
+    <button class="side-link" data-page="projects">📁 Projects</button>
+    <button class="side-link" data-page="knowledge">🧠 Knowledge</button>
+    <button class="side-link" data-page="skills">🛠 Skills</button>
+  </nav>
+  <div class="sidebar-search">
+    <input id="conversationSearch" type="search" placeholder="Search conversations…">
+  </div>
+  <div class="conversation-tree" id="conversationTree"></div>
+  <div class="sidebar-bottom">
+    <button class="side-link" data-page="settings">⚙ Settings</button>
+    <small>Angel Nexus 4.2 · Unified Workspace</small>
+  </div>
+</aside>
+<main class="workspace">
+  <section id="chatPage" class="page active">
+    <div class="chat-heading">
+      <div>
+        <h2 id="chatTitle">Talk to Angel</h2>
+        <p>Conversation first. Workspace context remains visible when you need it. <span class="project-chip" id="chatProjectHint"> · Global conversation</span></p>
+      </div>
+      <div class="heading-controls">
+        <div class="model-status-mini" id="modelStatusMini">
+          <span class="status-dot">●</span>
+          <span><b id="miniBackend">Local</b><small id="miniModel">Loading model status…</small></span>
+        </div>
+        <button class="context-toggle" id="contextToggle">Context</button>
+      </div>
+    </div>
+    <div id="messages" class="messages"></div>
+    <div id="pageContent" class="page-content hidden"></div>
+    <div class="composer" id="composer">
+      <textarea id="prompt" rows="1" placeholder="Ask Angel anything…"></textarea>
+      <button id="send" class="send">➤</button>
+      <div class="composer-tools"><button id="voice">♩ Voice</button><button id="attach">⊕ Attach</button><span>Knowledge-aware chat</span></div>
+    </div>
+  </section>
+</main>
+<aside id="contextPanel" class="context-panel hidden" aria-label="Angel Context"></aside>
+</div>
+</div>
+<input id="mdFiles" type="file" accept=".md,text/markdown" multiple hidden>
+<input id="mdFolder" type="file" accept=".md,text/markdown" webkitdirectory directory multiple hidden>
+<input id="zipPack" type="file" accept=".zip,application/zip" hidden>
+<script src="/static/app.js"></script>
+</body></html>
