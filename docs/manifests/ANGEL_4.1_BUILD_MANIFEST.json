@@ -1,0 +1,25 @@
+{
+  "version": "4.1.0",
+  "type": "canonical-contract-foundation",
+  "base": "Angel Platform 4.0.1 Knowledge First",
+  "canonical_contract": "api/Angel_4.1_Canonical_OpenAPI.yaml",
+  "engineering_api": "127.0.0.1:8780",
+  "preserved_core": [
+    "UI",
+    "conversation persistence",
+    "date/time routing",
+    "weather routing",
+    "knowledge import"
+  ],
+  "contract_validation": {
+    "paths": 42,
+    "operations": 53,
+    "schemas": 83,
+    "local_refs_checked": 335,
+    "unresolved_refs": 0,
+    "duplicate_operation_ids": 0,
+    "path_parameter_mismatches": 0,
+    "non_2xx_error_example_gaps": 0
+  },
+  "implementation_status": "foundation"
+}

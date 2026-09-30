@@ -1,0 +1,14 @@
+{
+  "release": "4.3.1-A",
+  "name": "Conversation Foundation & Instrumentation",
+  "status": "development-build",
+  "baseline": "Angel_Platform_4.2.1 - ORGANIZED BUILD",
+  "authoritative_conversation_storage": "SQLite",
+  "conversation_store": "angel_platform/storage/conversation_store.py",
+  "diagnostics": "Angel_Platform/context_diagnostics.jsonl",
+  "diagnostic_endpoint": "/api/context/diagnostics",
+  "behavior_change": false,
+  "ui_change": false,
+  "database_schema_change": false,
+  "notes": "Instrumentation and storage abstraction only; current 20-message history behavior is measured, not changed."
+}

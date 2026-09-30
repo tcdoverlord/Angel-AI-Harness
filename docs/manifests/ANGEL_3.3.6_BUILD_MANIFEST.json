@@ -1,0 +1,34 @@
+{
+  "version": "3.3.6",
+  "name": "Angel Platform",
+  "release_type": "user-owned-module-storage",
+  "base": "Angel Platform 3.3.x source supplied by user",
+  "core_routing_preserved": [
+    "authoritative local date/time routing",
+    "provider-backed current weather routing",
+    "provider-backed tomorrow weather routing",
+    "Ollama local chat",
+    "knowledge and capability context",
+    "module/action APIs",
+    "GitHub and feedback APIs"
+  ],
+  "new": [
+    "SQLite-backed conversation list",
+    "stable conversation IDs",
+    "server-side conversation loading",
+    "per-conversation message persistence",
+    "restart-safe sidebar history",
+    "legacy /api/history compatibility endpoint",
+    "robust natural-language weather location extraction",
+    "restored established local default instead of accidental New York fallback",
+    "user-owned GitHub module storage under Path.home()/Angel_Platform/modules/github_modules",
+    "conservative migration of legacy installed module paths"
+  ],
+  "tests": {
+    "pytest": "31 passed",
+    "conversation_api_smoke_test": "passed",
+    "datetime_routing_smoke_test": "passed",
+    "python_compileall": "passed",
+    "weather_routing_regression": "passed"
+  }
+}

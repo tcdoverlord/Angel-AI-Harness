@@ -1,0 +1,50 @@
+{
+  "product": "Angel Platform",
+  "version": "4.2.0",
+  "release": "Unified Workspace Build",
+  "base": "Angel Platform 4.1.1 Workspace Cohesion Release Candidate",
+  "focus": [
+    "unified navigation",
+    "project-aware workspace presentation",
+    "conversation grouping and search",
+    "progressive evidence disclosure",
+    "context visibility",
+    "chat and work mode presentation",
+    "model/backend transparency"
+  ],
+  "preserved": [
+    "4.1.1 project context isolation",
+    "conversation persistence",
+    "knowledge pack selection",
+    "stale selection recovery",
+    "knowledge deletion lifecycle",
+    "memory system",
+    "local model routing",
+    "canonical OpenAPI contract",
+    "Angel 4.1 engineering lifecycle"
+  ],
+  "deferred": [
+    "Event Bus Runtime",
+    "Payload Validation",
+    "Advanced Contextual Pill Telemetry",
+    "Advanced RAG Measurements UI",
+    "Recommendation UI",
+    "Snapshot UI",
+    "Autonomous multi-step workflows",
+    "Cross-project orchestration",
+    "Background task scheduling",
+    "Model routing changes between Local, Cloud, and Auto"
+  ],
+  "rules": [
+    "4.1.1 state ownership remains authoritative",
+    "workspace UI composes state and does not create a second source of truth",
+    "unscoped chats remain unscoped",
+    "project context is persisted on the conversation rather than inferred from workspace selection",
+    "evidence is progressive disclosure"
+  ],
+  "validation": {
+    "new_tests": "Unified Workspace 4.2 UI contract and workspace summary checks",
+    "baseline": "4.1.1 automated validation must remain passing"
+  },
+  "status": "Implementation build \u2014 requires local QA before release candidate approval"
+}

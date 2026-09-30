@@ -1,0 +1,31 @@
+{
+  "brand": {
+    "primary": "#0878ED",
+    "primary_bright": "#38A9FF",
+    "cyan": "#62D7FF",
+    "success": "#00E889",
+    "background": "#020B16",
+    "surface": "#071728",
+    "surface_alt": "#0B1D31",
+    "border": "#123E64",
+    "text": "#F2F7FF",
+    "muted_text": "#8FA8C2"
+  },
+  "ui": {
+    "corner_radius": 12,
+    "sidebar_width": 150,
+    "recommended_font": "Segoe UI",
+    "layout": "desktop-first, responsive fallback",
+    "theme": "dark"
+  },
+  "screens": [
+    "chat",
+    "nexus-control",
+    "modules",
+    "system-tools",
+    "automation",
+    "memory",
+    "settings",
+    "help"
+  ]
+}

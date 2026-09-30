@@ -1,0 +1,32 @@
+{
+  "version": "4.3.1-C",
+  "name": "Conversation Intelligence",
+  "status": "frozen-development-build",
+  "goal": "Improve conversation continuity",
+  "baseline": "4.3.1-B",
+  "components": [
+    "ConversationIntelligence",
+    "ContextAssembler",
+    "ConversationStore"
+  ],
+  "capabilities": {
+    "objective_tracking": true,
+    "follow_up_resolution": true,
+    "reference_resolution": true,
+    "context_trace": true,
+    "token_diagnostics": true,
+    "truncation_diagnostics": true
+  },
+  "tests": {
+    "pytest": "68 passed",
+    "compileall": "passed"
+  },
+  "boundaries": {
+    "sqlite_schema_changed": false,
+    "ui_changed": false,
+    "confidence_system_added": false,
+    "summarization_added": false,
+    "storage_replaced": false
+  },
+  "rollback": "Angel Platform 4.3.1-B — Context Engine"
+}

@@ -1,0 +1,25 @@
+{
+  "build": "4.3.1-G",
+  "name": "Quality & Regression",
+  "status": "Frozen QA milestone",
+  "baseline": "4.3.1-F",
+  "tests": "84 passed",
+  "compileall": "passed",
+  "coverage": [
+    "2000-word prompt",
+    "5000-word prompt",
+    "100/250/500 message conversations",
+    "follow-up resolution",
+    "project retention",
+    "knowledge retention",
+    "objective retention",
+    "evidence retention",
+    "unsupported claims",
+    "conflict handling",
+    "summary preservation",
+    "500-message performance guard"
+  ],
+  "limitations": [
+    "Subjective response quality and real-world hallucination rates require model-backed evaluation data; deterministic regression tests do not establish those metrics."
+  ]
+}

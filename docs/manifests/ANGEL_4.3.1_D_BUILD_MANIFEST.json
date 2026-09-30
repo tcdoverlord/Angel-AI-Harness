@@ -1,0 +1,37 @@
+{
+  "version": "4.3.1-D",
+  "name": "Evidence & Confidence",
+  "status": "frozen-development-build",
+  "goal": "Reduce hallucinations through evidence-aware confidence",
+  "baseline": "4.3.1-C",
+  "components": [
+    "EvidenceConfidence",
+    "ConversationIntelligence",
+    "ContextAssembler",
+    "ConversationStore"
+  ],
+  "capabilities": {
+    "confidence_levels": ["High", "Medium", "Low", "Unknown"],
+    "evidence_count": true,
+    "source_count": true,
+    "conflict_detection": true,
+    "support_strength": true,
+    "facts_open_questions_recommendations": true,
+    "uncertainty_handling": true,
+    "context_trace": true,
+    "context_diagnostics": true
+  },
+  "tests": {
+    "pytest": "72 passed",
+    "compileall": "passed"
+  },
+  "boundaries": {
+    "sqlite_schema_changed": false,
+    "ui_changed": false,
+    "summarization_added": false,
+    "storage_replaced": false,
+    "external_service_added": false,
+    "model_confidence_classifier_added": false
+  },
+  "rollback": "Angel Platform 4.3.1-C — Conversation Intelligence"
+}

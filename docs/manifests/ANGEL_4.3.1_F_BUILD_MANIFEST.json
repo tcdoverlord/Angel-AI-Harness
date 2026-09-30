@@ -1,0 +1,24 @@
+{
+  "build": "4.3.1-F",
+  "title": "Storage Modernization Decision",
+  "status": "Frozen Milestone",
+  "decision": "Option B \u2014 retain ConversationStore and improve SQLite",
+  "validation": {
+    "pytest": "77 passed",
+    "compileall": "passed"
+  },
+  "schema_changed": false,
+  "authoritative_storage": "SQLite",
+  "compatibility_json": "chat_history.json remains compatibility/export-only",
+  "options": {
+    "A": "SQLite canonical; JSON retirement deferred",
+    "B": "Selected",
+    "C": "Per-conversation JSON deferred"
+  },
+  "artifacts": [
+    "docs/releases/ANGEL_PLATFORM_4.3.1-F_BUILD_NOTES.md",
+    "docs/architecture/4.3.1-F-Storage-Decision.md",
+    "angel_platform/storage/storage_review.py",
+    "tests/test_storage_review_431f.py"
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "build": "4.3.1-E",
+  "name": "Conversation Summaries",
+  "status": "frozen-development-milestone",
+  "goal": "Handle long conversations intelligently without destructive compression.",
+  "validation": {"pytest": "75 passed", "compileall": "passed", "long_context": [200, 500]},
+  "storage": {"authoritative": "SQLite", "derived_summary_table": "conversation_summaries", "original_transcript_preserved": true},
+  "thresholds": {"summary_start": 100, "refresh_interval_messages": 50},
+  "scope_exclusions": ["UI redesign", "destructive transcript compression", "new model dependency", "external summary service"]
+}
