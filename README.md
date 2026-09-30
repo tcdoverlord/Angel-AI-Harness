@@ -1,115 +1,432 @@
-# Angel Platform
+# Angel AI Harness
 
+> **Angel Platform 4.4.3-EBR-R4-ALPHA2 — Evidence-Backed Reasoning & Context Integrity Build**  
 > **"Peace Be The Journey" — Callan Palmer**
 
-**Angel Platform** is a local-first AI assistant and system-management foundation built by **TCDOVERLORD**. It combines conversational AI, local intelligence, project and module tooling, controlled system workflows, persistent local data, and a browser-based interface.
+Angel AI Harness is the development repository for **Angel Platform**, a local-first AI assistant and system-management foundation built by **TCDOVERLORD**.
 
-The project is intended to be useful to individuals, students, researchers, hobbyists, developers, and organizations that want to explore or build on a locally controlled AI platform.
+This build represents the **4.4.3-EBR-R4-ALPHA2** engineering checkpoint. It focuses on evidence-backed reasoning, response telemetry, retrieval/context integrity, conversational continuity, controlled execution, and a unified local workspace while preserving SQLite as the authoritative source of conversation data.
 
-> **Current release:** Angel Platform 3.3.5  
-> **Repository:** https://github.com/tcdoverlord/Angel-AI
-
----
-
-## Project Goals
-
-Angel Platform is designed around these principles:
-
-- **Local-first operation** with local files and optional local AI inference.
-- **Human approval before sensitive actions.**
-- **Clear separation between conversation, planning, and execution.**
-- **Auditable workflows** where practical.
-- **Modular architecture** that can grow over time.
-- **Accessible development** for learners, contributors, and independent builders.
-- **Responsible collaboration** with individuals, organizations, and businesses.
-
-Angel Platform is an evolving project. Some capabilities are implemented, some are limited, and others remain planned. Always verify the actual behavior of the version you are running.
+**Repository:** https://github.com/tcdoverlord/Angel-AI-Harness
 
 ---
 
-## Main Components
+## Angel AI Harness Logo
 
-### Angel AI
+<p align="center">
+  <img src="https://github.com/tcdoverlord/Angel-AI-Harness/blob/main/assets/angel-ai-ui-assets-v1/images/angelaiharness.png?raw=true"
+       alt="Angel AI Harness logo"
+       width="700">
+</p>
 
-The conversational and intelligence layer supports:
+## Example Demo
 
-- General conversation and explanations.
-- Technical assistance and troubleshooting.
-- Planning and creative work.
-- Local knowledge and intelligence resources.
-- Local memory and conversation-related storage.
-- Optional integration with local AI providers such as Ollama.
+The following GIF provides a quick visual example of Angel AI Harness running locally:
 
-### Angel Nexus
+<p align="center">
+  <img src="assets/angel-ai-ui-assets-v1/images/angelaiharnessvid.gif"
+       alt="Angel AI Harness example demo"
+       width="900">
+</p>
 
-The management and integration layer is intended to provide:
+> **Demo:** Angel AI Harness local workspace and platform interface.
 
-- System and environment information.
-- Tool and module discovery.
-- Project-related workflows.
-- Controlled script and module execution.
-- Approval checks for potentially sensitive actions.
-- Future integrations with additional system tools and services.
+## Current Build
 
-### Angel Platform OS
+### Angel Platform 4.4.3-EBR-R4-ALPHA2
 
-Angel Platform OS is the longer-term platform vision for connecting Angel AI and Angel Nexus with a personalized, modular computing environment.
+This build is documented as a full improvement build from the 4.4.2 EBR prototype line.
 
-This is a continuing development direction and should not be interpreted as a fully completed operating system or unrestricted system-control layer.
+The 4.4.3 R4 Alpha2 build includes:
 
----
+- R4 response telemetry contract
+- Model invocation tracking
+- Response hash and preview data
+- Ordered RAG state history
+- Terminal-state telemetry
+- Suppression consistency between trace and diagnostics
+- Controlled conflict fixtures under `TEST_MODE`
+- Controlled retrieval-failure fixtures under `TEST_MODE`
+- A-13, A-14, and A-15 context-integrity tests
+- Async isolation coverage
+- Windows start, stop, and test helper scripts
+- Conversational continuity protection for short acknowledgements
+- Local sale / nap / buyer conversation-thread continuity handling
+- Clearer retrieval UI wording using **retrieved knowledge**
+- Windows EXE packaging through `run_angel_4_2.py`
+- Preservation of the **8780 engineering API** and **8765 Unified Workspace** paths used by R4 validation
 
-## Current Capabilities
+The build deliberately does **not** replace SQLite authority and does **not** introduce a vector database, graph database, or retrieval-architecture redesign.
 
-The 3.3.x development line includes foundations for:
-
-- Browser-based local interface.
-- Optional desktop window through `pywebview`.
-- Local HTTP server.
-- Local project and module management.
-- Controlled action definitions with confirmation requirements.
-- Knowledge and case-study resources.
-- Local SQLite intelligence storage.
-- Compatibility JSON history and recovery data.
-- Local logging and audit-oriented structures.
-- Provider-backed weather functionality in the relevant development checkpoint.
-- Windows executable packaging through PyInstaller.
-
-Capabilities can vary by platform and configuration. Features that interact with the operating system should be reviewed and tested before use.
-
----
-
-## System Requirements
-
-### Windows
-
-Recommended:
-
-- Windows 10 or Windows 11, 64-bit.
-- Python 3.10 or newer.
-- PowerShell.
-- Internet access for installing Python packages and optional services.
-- Ollama, if local AI inference is enabled.
-
-### Linux
-
-Basic source execution may be possible on Linux, but platform-specific behavior and system integrations must be tested on the target distribution.
-
-Windows executable packaging is not intended to be used as the Linux launch method.
+See `BUILD_4.4.3-EBR-R4-ALPHA2.md` for the build-specific engineering record.
 
 ---
 
-## Installation from Source
+## What Angel AI Harness Is
 
-### Windows
+Angel is being developed as a locally controlled AI platform rather than only a chat interface.
 
-Open PowerShell in the repository directory:
+The platform combines several layers:
 
-```powershell
-Set-Location "C:\Path\To\Angel-AI"
+```text
+User
+  │
+  ▼
+Angel Web Workspace
+  │
+  ├── Conversation Intelligence
+  ├── Context Engine
+  ├── Evidence-Backed Reasoning
+  ├── Knowledge / Retrieval
+  ├── Memory & SQLite Storage
+  ├── Capabilities / Tools
+  ├── Controlled Execution
+  └── Engineering / Telemetry
+          │
+          ▼
+     Local System
 ```
 
-Create a virtual environment:
+The architecture is intended to keep conversation, reasoning, storage, retrieval, execution, and diagnostics understandable and separately testable.
+
+---
+
+## Core Engineering Principles
+
+Angel development is organized around several important principles:
+
+### Local-first
+
+Conversation state, knowledge resources, storage, and application components are designed to operate locally.
+
+### Human control
+
+System-changing or sensitive actions should be explicit and controlled rather than silently executed.
+
+### Evidence-backed reasoning
+
+The EBR work introduces a structured path for extracting, retrieving, validating, and injecting evidence-backed context.
+
+### SQLite remains authoritative
+
+Derived evidence structures are intended to remain rebuildable. The EBR prototype does not replace the authoritative conversation/message store.
+
+### Context integrity
+
+Angel is designed to reduce accidental retrieval of unrelated historical information when a conversation is continuing naturally.
+
+### Controlled execution
+
+Planning and execution are treated as separate concerns, with confirmation and safety checks around sensitive operations.
+
+### Observable behavior
+
+R4 introduces additional telemetry and diagnostics so model invocation, response state, retrieval state, and related engineering behavior can be inspected.
+
+---
+
+# Major Platform Components
+
+## Angel AI
+
+The intelligence and conversation layer provides the foundation for:
+
+- Conversation handling
+- Context processing
+- Conversation intelligence
+- Summaries
+- Knowledge access
+- Evidence-backed reasoning
+- Local storage
+- Model integration
+- Response diagnostics
+
+## Angel Nexus
+
+Angel Nexus represents the platform's system and module-management direction.
+
+The repository contains capabilities and execution infrastructure intended to support controlled:
+
+- Tool discovery
+- Module workflows
+- System inspection
+- Script execution
+- Project operations
+- Approval-aware actions
+
+## Unified Workspace
+
+The local browser workspace provides the primary application interface for the current platform line.
+
+The R4 validation path uses:
+
+```text
+http://127.0.0.1:8765/
+```
+
+The engineering API path retained by this build uses:
+
+```text
+http://127.0.0.1:8780/
+```
+
+These endpoints are part of the documented R4 engineering/runtime arrangement and should not be assumed to represent permanent public API contracts.
+
+---
+
+# Evidence-Backed Reasoning
+
+The 4.4.x EBR work introduces a structured reasoning path:
+
+```text
+SQLite Messages
+      │
+      ▼
+Deterministic Extraction
+      │
+      ▼
+Evidence Claims
+      │
+      ▼
+Claim Sources
+      │
+      ▼
+Exact-Key Retrieval
+      │
+      ▼
+Scope / Provenance Validation
+      │
+      ▼
+Structured Evidence Context
+      │
+      ▼
+Model
+```
+
+The prototype includes explicit retrieval and diagnostic states such as:
+
+```text
+OFF
+SEARCHING
+HIT
+HIT_VALIDATED
+HIT_FILTERED
+NO_EVIDENCE
+CONFLICT_FOUND
+SCOPE_BLOCKED
+DERIVED_ONLY
+REJECTED
+ERROR
+INJECTED
+LOCAL
+```
+
+A key contract in the EBR implementation is that an `ERROR` state is not silently converted into `NO_EVIDENCE`.
+
+---
+
+# Context Integrity
+
+The R4 build includes dedicated context-integrity work.
+
+The test and validation structure includes:
+
+- A-13 context continuity
+- A-14 context integrity
+- A-15 context integrity
+- Async isolation
+- Short-acknowledgement handling
+- Conversation-thread continuity
+- Retrieval isolation
+- Controlled conflict scenarios
+- Controlled retrieval-failure scenarios
+
+The purpose is to preserve the active conversational thread instead of treating every short acknowledgement as a reason to retrieve unrelated historical information.
+
+---
+
+# Repository Structure
+
+The repository currently contains the major areas below:
+
+```text
+Angel_AI_Harness/
+│
+├── angel_platform/
+│   ├── capabilities/
+│   ├── engineering/
+│   ├── intelligence/
+│   ├── knowledge/
+│   ├── storage/
+│   ├── webui/
+│   ├── context_engine.py
+│   ├── conversation_intelligence.py
+│   ├── conversation_summary.py
+│   ├── evidence_backed_reasoning.py
+│   ├── evidence_confidence.py
+│   ├── execution.py
+│   └── core.py
+│
+├── api/
+│   └── Angel_4.1_Canonical_OpenAPI.yaml
+│
+├── assets/
+│
+├── docs/
+│   ├── architecture/
+│   ├── planning/
+│   ├── qa/
+│   ├── releases/
+│   └── ...
+│
+├── migrations/
+│
+├── scripts/
+│
+├── tests/
+│   ├── context-integrity tests
+│   ├── EBR tests
+│   ├── routing safety tests
+│   ├── storage tests
+│   ├── execution tests
+│   ├── UI tests
+│   └── runtime/integration tests
+│
+├── AngelPlatform.spec
+├── build_windows_exe.bat
+├── run_angel_4_2.py
+├── run_angel_platform.py
+├── START_ANGEL_R4.bat
+├── STOP_ANGEL_R4.bat
+├── RUN_WINDOWS.bat
+├── RUN_LINUX.sh
+├── RUN_REPAIR_MODE.bat
+├── requirements.txt
+├── LICENSE.md
+└── README.md
+```
+
+---
+
+# Installation & First Run
+
+## Windows — Easiest Method
+
+For a Windows user who wants to run the packaged application, the repository's intended packaged application is the PyInstaller onedir build.
+
+After obtaining a completed build, the application is located at:
+
+```text
+dist\AngelPlatform\AngelPlatform.exe
+```
+
+### 1. Start Angel
+
+From the repository directory, run:
+
+```text
+RUN_WINDOWS.bat
+```
+
+The launcher checks for the packaged executable and starts it.
+
+### 2. Open the Angel Workspace
+
+The local workspace normally uses:
+
+```text
+http://127.0.0.1:8765/
+```
+
+Keep the application/runtime window available so startup errors can be reviewed if something goes wrong.
+
+### 3. Stop Angel
+
+For the R4 runtime workflow, use:
+
+```text
+STOP_ANGEL_R4.bat
+```
+
+The stop script terminates the tracked Angel process and removes the local PID file.
+
+It does **not** delete persistent project data.
+
+---
+
+## Windows — Build the EXE Yourself
+
+If the `dist\AngelPlatform\AngelPlatform.exe` package has not already been built, the repository includes a Windows build process.
+
+### Requirements
+
+The source build expects:
+
+- Windows 10 or Windows 11, 64-bit
+- Python 3.10 or newer
+- PowerShell
+- Internet access for installing Python packages
+
+### Build
+
+Open PowerShell in the repository directory and run:
+
+```powershell
+.\build_windows_exe.bat
+```
+
+The build process:
+
+1. Locates Python.
+2. Creates or reuses `.venv`.
+3. Installs the required dependencies.
+4. Validates the Python source.
+5. Runs PyInstaller.
+6. Verifies the resulting executable.
+
+The PyInstaller specification is:
+
+```text
+AngelPlatform.spec
+```
+
+The expected packaged application is:
+
+```text
+dist\AngelPlatform\AngelPlatform.exe
+```
+
+The build log is:
+
+```text
+build_windows_exe.log
+```
+
+The repository's included build record reports a successful EXE build.
+
+### Run the packaged build
+
+After the build completes:
+
+```text
+RUN_WINDOWS.bat
+```
+
+This starts:
+
+```text
+dist\AngelPlatform\AngelPlatform.exe
+```
+
+**Important:** Angel is packaged as an **onedir** application. Keep the complete `dist\AngelPlatform\` directory together. Do not copy only the `.exe` to another location.
+
+---
+
+## Windows — Run from Source
+
+Developers can run Angel directly from Python instead of using the packaged EXE.
+
+From the repository directory:
 
 ```powershell
 py -3 -m venv .venv
@@ -128,27 +445,29 @@ Install dependencies:
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
 ```
 
-Run a source validation check:
+Validate the source:
 
 ```powershell
 .\.venv\Scripts\python.exe -m compileall -q angel_platform run_angel_platform.py
 ```
 
-Start Angel Platform:
+Start the application:
 
 ```powershell
 .\.venv\Scripts\python.exe -u .\run_angel_platform.py
 ```
 
-The local interface normally uses:
+Then open:
 
 ```text
 http://127.0.0.1:8765/
 ```
 
-Keep the PowerShell window open while running from source so that startup errors and logs can be reviewed.
+---
 
-### Linux
+## Linux — Run from Source
+
+Basic source execution is available through the Linux launcher.
 
 Create and activate a virtual environment:
 
@@ -164,23 +483,31 @@ python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 ```
 
-Validate the source:
+Validate:
 
 ```bash
 python -m compileall -q angel_platform run_angel_platform.py
 ```
 
-Start the application:
+Start Angel:
 
 ```bash
 python -u ./run_angel_platform.py
 ```
 
+The repository also includes:
+
+```text
+RUN_LINUX.sh
+```
+
+Windows PyInstaller output is **not** the Linux launch method.
+
 ---
 
 ## Optional Ollama Setup
 
-Angel Platform can use local AI through Ollama when the relevant integration is enabled and configured.
+Angel can use local AI through Ollama when the relevant integration is enabled and configured.
 
 Install Ollama from its official website:
 
@@ -195,280 +522,418 @@ ollama --version
 ollama list
 ```
 
-If your configuration uses the example model from the development checkpoint:
-
-```powershell
-ollama pull llama3.2:3b
-```
-
-Test Ollama independently before troubleshooting Angel Platform:
-
-```powershell
-ollama run llama3.2:3b
-```
-
-Model names and integration behavior may change. Confirm the model configured by the application matches the model installed on your system.
+Model names and integration behavior can change between development checkpoints. Confirm the model configured by the application matches the model installed on your system.
 
 ---
 
-## Windows Executable Build
+## R4 Runtime Workflow
 
-The repository may include a Windows build script and PyInstaller specification.
+The repository includes dedicated R4 start/stop helpers.
 
-Before building:
-
-1. Verify that source mode starts successfully.
-2. Back up any working `build` or `dist` directories.
-3. Review the build script before running it.
-4. Confirm that you trust every script being executed.
-
-Build command:
-
-```powershell
-.\build_windows_exe.bat
-```
-
-The packaged application is expected to be an **onedir** build when generated through the documented packaging process. Keep the complete output directory together rather than copying only the executable.
-
-Typical output:
+Start:
 
 ```text
-dist\AngelPlatform\AngelPlatform.exe
+START_ANGEL_R4.bat
 ```
 
-Build scripts may remove and recreate `build` and `dist`. Do not run them without backing up any package you need to preserve.
+The R4 startup workflow:
 
----
+1. Locates the repository directory.
+2. Checks for `run_angel_4_2.py`.
+3. Checks that Python is available.
+4. Enables the R4 provenance path.
+5. Starts the Angel runtime.
+6. Records the process ID.
+7. Waits for the web workspace to respond.
+8. Opens the local workspace.
 
-## Safety and Permission Model
-
-Angel Platform is designed to keep users in control.
-
-System-related actions should follow these principles:
-
-- Explain the proposed action before execution.
-- Request clear permission for sensitive or system-changing operations.
-- Avoid unrestricted administrator access.
-- Separate read-only inspection from modification.
-- Make command output and errors visible.
-- Distinguish between a proposed action and a completed action.
-- Encourage backups before changes to important files or configurations.
-- Never assume that AI-generated commands are safe or correct.
-
-**Do not run unfamiliar scripts with administrator privileges unless you have reviewed and understood them.**
-
----
-
-## Local Data and Privacy
-
-Angel Platform may create local application data under:
+Workspace:
 
 ```text
-~/Angel_Platform
+http://127.0.0.1:8765/
 ```
 
-Depending on the installed version and enabled features, local data may include:
+Startup log:
 
-- Logs.
-- SQLite intelligence data.
-- Conversation or history compatibility files.
-- Approved memories.
-- Feedback records.
-- Tool audit records.
-- Recovery information.
+```text
+angel-r4-start.log
+```
 
-Review the source and configuration before using Angel Platform with sensitive information. Protect local files, backups, credentials, tokens, and encryption material.
+Runtime PID:
 
-Do not commit private runtime data to GitHub.
+```text
+angel-r4.pid
+```
+
+Stop:
+
+```text
+STOP_ANGEL_R4.bat
+```
 
 ---
 
-## Development Workflow
+# Linux
 
-Recommended workflow:
+A Linux source launcher is included:
 
-1. Inspect the existing implementation.
-2. Explain the intended change.
-3. Back up important files.
-4. Make one controlled change.
-5. Run syntax and validation checks.
-6. Test the actual interface.
-7. Review logs and errors.
-8. Document the result.
-9. Submit a focused contribution or pull request.
+```text
+RUN_LINUX.sh
+```
 
-Useful checks:
+It invokes:
 
-```powershell
-python -m py_compile .\angel_platform\webui\server.py
+```bash
+python3 run_angel_platform.py
+```
+
+Basic source setup:
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
 python -m compileall -q angel_platform run_angel_platform.py
+python -u ./run_angel_platform.py
+```
+
+The Windows PyInstaller executable is not the Linux launch method.
+
+Platform-specific behavior should be validated on the target Linux distribution.
+
+---
+
+# Development Environment
+
+The project is Python-based.
+
+The package metadata currently declares:
+
+```text
+Python >= 3.10
+```
+
+The repository also contains development and test requirements.
+
+Recommended source validation:
+
+```powershell
+python -m compileall -q angel_platform run_angel_platform.py
+```
+
+Additional project tests are located in:
+
+```text
+tests/
+```
+
+The test suite includes coverage for conversation behavior, context integrity, evidence-backed reasoning, routing, storage, execution, UI behavior, and runtime integration.
+
+---
+
+# Safety Model
+
+Angel is designed around controlled automation rather than unrestricted system control.
+
+Important development rules include:
+
+- Review system-changing operations before execution.
+- Keep read-only inspection separate from modification.
+- Require explicit confirmation for sensitive actions where appropriate.
+- Preserve visibility into commands, results, and failures.
+- Avoid treating AI-generated commands as automatically safe.
+- Maintain backups before important system or data changes.
+- Keep credentials, tokens, private memory, and runtime state out of source control.
+- Test destructive behavior explicitly rather than assuming it is safe.
+
+Do not run unfamiliar scripts with administrator privileges without reviewing what they do.
+
+---
+
+# Data and Privacy
+
+Angel can maintain local application state, including conversation and intelligence data.
+
+The repository contains storage, knowledge, evidence, and runtime components, but local runtime state should not be committed to the public repository.
+
+Keep the following out of source control:
+
+- Credentials
+- API keys
+- Authentication tokens
+- Private user data
+- Local databases
+- Runtime logs
+- PID files
+- Virtual environments
+- Build output
+- Machine-specific configuration
+- Local model files
+- Private memory/state
+
+The repository's `.gitignore` is configured to exclude local/generated material.
+
+---
+
+## Where Angel Stores Chat History
+
+Angel stores conversation data locally on the user's computer.
+
+### Windows
+
+The local Angel application data directory is:
+
+```text
+%USERPROFILE%\Angel_Platform\
+```
+
+For example:
+
+```text
+C:\Users\<YourUserName>\Angel_Platform\
+```
+
+### Linux
+
+The local Angel application data directory is:
+
+```text
+~/Angel_Platform/
+```
+
+The 4.4.x EBR architecture keeps **SQLite as the authoritative conversation/message store**. The repository documentation also identifies local history compatibility data and other intelligence records as part of the local application data.
+
+Depending on the active build and enabled features, the local Angel data area may contain:
+
+- Conversation history
+- Message records
+- SQLite intelligence data
+- Conversation/history compatibility data
+- Approved memories
+- Knowledge and evidence data
+- Feedback records
+- Tool/audit records
+- Recovery information
+- Runtime logs
+
+### Important Privacy Note
+
+Your Angel conversation history and related local intelligence data may contain sensitive personal or project information.
+
+**Do not upload your local `Angel_Platform` data directory to a public GitHub repository.**
+
+The public Git repository contains the Angel application source and documentation. A user's private conversation history belongs in the user's local application data, not in source control.
+
+### Backing Up Chat History
+
+Before reinstalling Angel, migrating to another computer, or making major storage changes, back up the user's local Angel data directory:
+
+```text
+Windows:
+%USERPROFILE%\Angel_Platform\
+
+Linux:
+~/Angel_Platform/
+```
+
+Keep backups protected because they may contain private conversation and intelligence data.
+
+Do not manually edit or delete the SQLite database unless you understand the storage schema and have a verified backup.
+
+# Local AI and Model Providers
+
+Angel has historically supported integration with local AI providers such as Ollama, depending on the active implementation and configuration.
+
+Provider and model availability can change between development checkpoints.
+
+Do not assume that a model mentioned in older documentation is required by this build. Review the active configuration and source before installing or selecting a model.
+
+---
+
+# Testing and Validation
+
+The repository contains dedicated tests for several areas of the platform.
+
+Examples include:
+
+```text
+tests/test_context_integrity_431g.py
+tests/test_r4_context_integrity.py
+tests/test_ebr_442.py
+tests/test_ebr_r2_adversarial.py
+tests/test_routing_safety.py
+tests/test_execution.py
+tests/test_platform.py
+tests/test_unified_workspace_42.py
+tests/test_read_aloud_ui.py
+tests/test_quality_regression_431g.py
+```
+
+The 4.4.3 R4 build documentation specifically identifies A-13/A-14/A-15 context-integrity coverage and async isolation as part of the build.
+
+For a local validation pass:
+
+```powershell
+python -m compileall -q angel_platform run_angel_4_2.py
+```
+
+Then run the relevant test modules for the area being changed.
+
+---
+
+# Engineering Documentation
+
+The repository includes a substantial engineering record covering:
+
+- Architecture decisions
+- Requirements traceability
+- Build manifests
+- Release notes
+- QA checklists
+- Safe execution guidance
+- Evidence-backed reasoning
+- R4 telemetry
+- Context-engine work
+- Conversation intelligence
+- Storage decisions
+- Unified workspace governance
+- Planning and rollback documentation
+
+Important starting points include:
+
+```text
+BUILD_4.4.3-EBR-R4-ALPHA2.md
+docs/r4_telemetry.md
+docs/architecture/README_CURRENT_ARCHITECTURE.md
+docs/architecture/Angel-Full-Program-Handbook.md
+docs/architecture/Angel-Requirements-Traceability-Matrix.md
+docs/qa/SAFE_EXECUTION.md
+```
+
+---
+
+# Development Workflow
+
+For controlled Angel development:
+
+1. Inspect the current implementation.
+2. Identify the smallest required change.
+3. Preserve the existing working behavior.
+4. Make one focused modification.
+5. Run source validation.
+6. Run the relevant tests.
+7. Test the actual application interface.
+8. Review logs and diagnostics.
+9. Document the change.
+10. Commit a focused change.
+
+Useful Git checks:
+
+```powershell
 git status
 git diff --stat
-git diff --cached --name-status
+git diff
+git log --oneline --decorate -5
 ```
 
----
-
-## Contributing
-
-Contributions are welcome when they are respectful, useful, and aligned with the project's safety goals.
-
-You can contribute through:
-
-- Bug reports.
-- Documentation improvements.
-- Installation instructions.
-- Testing on additional systems.
-- Accessibility and interface improvements.
-- Security reviews.
-- Performance improvements.
-- Unit tests.
-- New modules and integrations.
-- Knowledge resources.
-- Error reports with reproducible steps.
-
-### Suggested Contribution Process
-
-1. Open an issue describing the proposed change.
-2. Explain the problem, expected behavior, and possible risks.
-3. Fork the repository or create a working branch.
-4. Make focused changes.
-5. Test your work.
-6. Document important behavior or limitations.
-7. Submit a pull request.
-8. Respond to review feedback in good faith.
-
-Please do not include secrets, private data, malware, destructive functionality, or unreviewed system-control behavior in contributions.
-
-Contributions do not automatically guarantee inclusion in an official release.
+Avoid destructive Git operations when they are not necessary.
 
 ---
 
-## Business and Commercial Use
+# Project Direction
 
-Angel Platform is intended to be accessible for personal, educational, research, and non-commercial use under the included license.
+Angel is an evolving engineering project.
 
-**Business and commercial use requires written permission or a separate commercial license from the copyright holder unless the project license is formally changed.**
+Current development direction includes:
 
-Organizations and businesses are encouraged to:
+- Local-first AI
+- Evidence-backed reasoning
+- Conversation and context integrity
+- Persistent local intelligence
+- Controlled tool execution
+- Modular capabilities
+- Engineering telemetry
+- Knowledge management
+- Unified workspace development
+- Windows and Linux support
+- Local AI provider integration
+- Angel Nexus module and system-management workflows
 
-- Contact the project before commercial deployment.
-- Explain the intended use and distribution model.
-- Discuss security, support, branding, and integration needs.
-- Contribute improvements, testing, documentation, funding, infrastructure, or other support when they are able.
-- Respect the project's safety and attribution requirements.
-
-Permission is not automatically granted by downloading, modifying, or contributing to the repository. See `LICENSE.md` for the current legal terms.
-
-> Important: The included Angel AI Build license is **source-available and non-commercial**, not an OSI-approved open-source license. If the project is later intended to use a formal open-source license, the licensing terms must be changed deliberately and consistently across the repository.
+Future work should be treated as development goals rather than guaranteed release commitments.
 
 ---
 
-## Licensing
+# Known Limitations
 
-The repository currently includes:
+This is an engineering/alpha build.
+
+Important limitations include:
+
+- Some features remain experimental or development-stage.
+- Platform behavior can vary between Windows and Linux.
+- AI-generated responses can be inaccurate.
+- Model/provider compatibility depends on configuration.
+- Some system integrations require additional local dependencies.
+- R4 telemetry and EBR components are engineering features under continued validation.
+- The Windows executable is an onedir package and must remain with its packaged files.
+- External services and providers can become unavailable or change behavior.
+- Production suitability must be evaluated independently for the intended environment.
+
+---
+
+# License
+
+This repository includes:
 
 ```text
 LICENSE.md
 ```
 
-The included license reserves commercial rights to the copyright holder and permits specified personal, educational, research, evaluation, and other non-commercial uses.
+The current project license is the **MIT License**.
 
-Third-party dependencies, models, APIs, assets, and services may have separate licenses and terms. Review and comply with those terms.
-
----
-
-## Project Structure
-
-The exact structure may change, but major areas include:
+Copyright:
 
 ```text
-Angel-AI/
-├── angel_platform/
-│   ├── capabilities/
-│   ├── intelligence/
-│   ├── knowledge/
-│   ├── storage/
-│   └── webui/
-├── assets/
-├── scripts/
-├── tests/
-├── AngelPlatform.spec
-├── requirements.txt
-├── run_angel_platform.py
-├── build_windows_exe.bat
-├── RUN_WINDOWS.bat
-├── RUN_REPAIR_MODE.bat
-├── LICENSE.md
-└── README.md
+Copyright (c) 2026 TCDOVERLORD
 ```
 
-Always inspect the current repository before assuming a file or directory exists.
+The MIT license permits use, modification, distribution, and commercial use subject to its terms.
+
+Third-party libraries, models, APIs, assets, fonts, icons, and services may have separate licenses and terms. Review those licenses before redistribution or commercial deployment.
 
 ---
 
-## Known Limitations
+# Repository
 
-- Platform support varies between Windows and Linux.
-- Some system-management features are controlled, preview-based, or still under development.
-- AI-generated output can be inaccurate or incomplete.
-- Local AI model compatibility depends on the configured provider and model.
-- External services such as weather providers can become unavailable.
-- Packaging behavior can change as the project evolves.
-- Security and administrative workflows require continued testing and review.
-- The project should not be treated as production-ready for every environment without independent validation.
+**Angel AI Harness**
 
----
+https://github.com/tcdoverlord/Angel-AI-Harness
 
-## Roadmap Direction
+Maintainer identity:
 
-Possible future work includes:
+**TCDOVERLORD**
 
-- Stronger automated tests.
-- Improved Linux support.
-- Better module discovery and installation workflows.
-- More detailed permission and audit controls.
-- Safer execution limits and sandboxing.
-- Improved memory management and user controls.
-- Additional local AI providers.
-- Better error reporting and recovery.
-- More accessible documentation.
-- Community contribution guidelines.
-- Business collaboration and commercial licensing options.
-- More complete Angel Platform OS integration.
+Project:
 
-Roadmap items are goals, not guarantees or commitments to a specific release date.
+**Angel AI / Angel Platform / Angel Nexus**
 
 ---
 
-## Community Values
+## Build Identity
 
-Angel Platform is built around:
+```text
+Project:        Angel AI Harness
+Platform:       Angel Platform
+Release line:   4.4.3
+Build:          EBR-R4-ALPHA2
+Focus:          Evidence-Backed Reasoning + Context Integrity
+Runtime UI:     127.0.0.1:8765
+Engineering API:127.0.0.1:8780
+Packaging:      PyInstaller onedir
+Primary OS:     Windows
+Additional OS:  Linux source runtime
+License:        MIT
+```
 
-- Human control.
-- Transparency.
-- Privacy-conscious local operation.
-- Responsible experimentation.
-- Open communication.
-- Respect for contributors.
-- Practical documentation.
-- Safety before automation.
-- Shared improvement when people and organizations have the ability to contribute.
-
----
-
-## Disclaimer
-
-Angel Platform is provided for experimentation, development, research, and other permitted uses. Review the code, test changes, protect your data, maintain backups, and verify commands before execution.
-
-The project may interact with local files, operating-system tools, AI models, network services, and administrative workflows. You are responsible for determining whether it is appropriate for your environment.
-
----
-
-## Contact and Repository
-
-- **GitHub:** https://github.com/tcdoverlord/Angel-AI
-- **Project:** Angel Platform / Angel AI / Angel Nexus
-- **Maintainer:** TCDOVERLORD
-
-**Peace Be The Journey.**
+> **Peace Be The Journey.**
